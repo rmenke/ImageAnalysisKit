@@ -28,6 +28,8 @@ void addAlpha(const vImage_Buffer *buffer, vImagePixelCount x, vImagePixelCount 
 
     auto differenceFromReferencePixel = [referencePixel, fuzziness] (simd::float4 pixel) -> float {
         if (simd::all(referencePixel.xyz == pixel.xyz)) return 0.0;
+        if (fuzziness == 0.0) return 1.0;
+
         return simd::clamp(simd::distance(referencePixel.xyz, pixel.xyz) / fuzziness, 0.0f, 1.0f);
     };
 
@@ -40,9 +42,9 @@ void addAlpha(const vImage_Buffer *buffer, vImagePixelCount x, vImagePixelCount 
         queue.pop();
 
         auto row = reinterpret_cast<simd::float4 *>(static_cast<uint8_t *>(buffer->data) + (buffer->rowBytes * y));
-        
+
         if (!is_open(row[x])) continue;
-        
+
         vImagePixelCount lo = x, hi = x;
 
         while (lo > 0 && is_open(row[lo - 1])) --lo;
@@ -81,4 +83,3 @@ public:
 };
 
 static const trig_data trig;
-
