@@ -27,11 +27,15 @@ FOUNDATION_EXPORT NSString * const ImageAnalysisKitErrorDomain;
                                   error:(NSError **)error NS_DESIGNATED_INITIALIZER;
 - (nullable instancetype)initWithImage:(CGImageRef)image error:(NSError **)error NS_DESIGNATED_INITIALIZER;
 
+- (nullable instancetype)initWithPlanes:(NSArray<IABuffer *> *)planes error:(NSError **)error;
+
 - (nullable IABuffer *)dilateWithKernelSize:(NSSize)kernelSize error:(NSError **)error;
 - (nullable IABuffer *)erodeWithKernelSize:(NSSize)kernelSize error:(NSError **)error;
 
 - (nullable IABuffer *)extractAlphaChannelAndReturnError:(NSError **)error;
 - (nullable IABuffer *)extractBorderMaskAndReturnError:(NSError **)error;
+
+- (nullable NSArray<IABuffer *> *)extractAllPlanesAndReturnError:(NSError **)error;
 
 - (BOOL)writePNGFileToURL:(NSURL *)url error:(NSError **)error;
 

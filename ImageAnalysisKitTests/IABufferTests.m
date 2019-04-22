@@ -19,6 +19,11 @@
     #define WRITE_TO_FILE(BUFFER, TAG) do {} while (0)
 #endif
 
+#define XCTAssertNoError(EXPRESSION, ...) do { \
+    NSError * __autoreleasing error; \
+    XCTAssert((EXPRESSION), @"%@" __VA_ARGS__, error); \
+} while (0)
+
 @interface IABufferTests : XCTestCase
 
 @property (nonatomic, nonnull, readonly) NSArray<NSURL *>* imageURLs;
@@ -47,8 +52,7 @@
     NSError * __autoreleasing error;
 
     IABuffer *buffer = [[IABuffer alloc] initWithHeight:16 width:16 bitsPerComponent:8 bitsPerPixel:8 colorSpace:nil error:&error];
-    
-    XCTAssertNotNil(buffer, @"%@", error);
+    XCTAssertNoError(buffer);
 }
 
 - (void)testInitFailureAndErrorReporting {
@@ -64,29 +68,24 @@
 }
 
 - (void)testInitWithImage {
-    NSError * __autoreleasing error;
-
     id source = CFBridgingRelease(CGImageSourceCreateWithURL((CFURLRef)_imageURLs[0], NULL));
     id image = CFBridgingRelease(CGImageSourceCreateImageAtIndex((CGImageSourceRef)source, 0, NULL));
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:(CGImageRef)image error:&error];
+    IABuffer *buffer;
 
-    XCTAssertNotNil(buffer, @"%@", error);
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithImage:(CGImageRef)image error:&error]);
 
     XCTAssertEqual(buffer.width, 320);
     XCTAssertEqual(buffer.height, 240);
 }
 
 - (void)testExtractAlpha {
-    NSError * __autoreleasing error;
-
     id source = CFBridgingRelease(CGImageSourceCreateWithURL((CFURLRef)_imageURLs[0], NULL));
     id image = CFBridgingRelease(CGImageSourceCreateImageAtIndex((CGImageSourceRef)source, 0, NULL));
 
     IABuffer *buffer;
 
-    buffer = [[[IABuffer alloc] initWithImage:(CGImageRef)image error:&error] extractAlphaChannelAndReturnError:&error];
-    XCTAssertNotNil(buffer, @"%@", error);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(CGImageRef)image error:&error] extractAlphaChannelAndReturnError:&error]);
 
     uint8_t *row = [buffer getRow:140];
     XCTAssertEqual(row[75], 255);
@@ -99,22 +98,18 @@
 }
 
 - (void)testExtractBorderMask {
-    NSError * __autoreleasing error;
-
     CGContextRef context = CGBitmapContextCreate(NULL, 16, 16, 8, 0, [NSColorSpace sRGBColorSpace].CGColorSpace, kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);
     CGContextSetRGBFillColor(context, 1, 1, 1, 1);
     CGContextFillRect(context, CGRectMake(0, 0, 16, 16));
     CGContextSetRGBFillColor(context, 0, 0, 0, 1);
     CGContextFillRect(context, CGRectMake(4, 4, 8, 8));
-    CGImageRef image = CGBitmapContextCreateImage(context);
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
     CGContextRelease(context);
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+    IABuffer *buffer;
 
-    CGImageRelease(image);
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]);
 
-    XCTAssertNotNil(buffer, @"%@", error);
-    
     for (NSUInteger y = 0; y < 16; ++y) {
         vector_uchar4 *row = [buffer getRow:y];
         for (NSUInteger x = 0; x < 16; ++x) {
@@ -122,7 +117,7 @@
         }
     }
 
-    XCTAssertNotNil(buffer = [buffer extractBorderMaskAndReturnError:&error], @"%@", error);
+    XCTAssertNoError(buffer = [buffer extractBorderMaskAndReturnError:&error]);
 
     for (NSUInteger y = 0; y < 16; ++y) {
         uint8_t *row = [buffer getRow:y];
@@ -138,8 +133,6 @@
 }
 
 - (void)testExtractBorderMaskFuzzy {
-    NSError * __autoreleasing error;
-
     CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
     CFArrayRef colors = CFArrayCreate(kCFAllocatorDefault, (const void*[]) { CGColorGetConstantColor(kCGColorBlack), CGColorGetConstantColor(kCGColorWhite) }, 2, &kCFTypeArrayCallBacks);
     CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, colors, NULL);
@@ -153,35 +146,31 @@
     CGContextDrawRadialGradient(context, gradient, CGPointMake(size/2,size/2), 0, CGPointMake(size/2,size/2), size/2 - 1, kCGGradientDrawsAfterEndLocation);
     CGGradientRelease(gradient);
 
-    CGImageRef image = CGBitmapContextCreateImage(context);
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
     CGContextRelease(context);
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+    IABuffer *buffer;
 
-    CGImageRelease(image);
-
-    XCTAssertNotNil(buffer = [buffer extractBorderMaskAndReturnError:&error], @"%@", error);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]
+                               extractBorderMaskAndReturnError:&error]);
 
     WRITE_TO_FILE(buffer, alpha);
 }
 
 - (void)testDilate {
-    NSError * __autoreleasing error;
-
     CGContextRef context = CGBitmapContextCreate(NULL, 16, 16, 8, 0, [NSColorSpace sRGBColorSpace].CGColorSpace,
                                                  kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);
     CGContextSetRGBFillColor(context, 1, 1, 1, 1);
     CGContextFillRect(context, CGRectMake(0, 0, 16, 16));
     CGContextSetRGBFillColor(context, 0, 0, 0, 1);
     CGContextFillRect(context, CGRectMake(4, 4, 8, 8));
-    CGImageRef image = CGBitmapContextCreateImage(context);
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
     CGContextRelease(context);
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+    IABuffer *buffer;
 
-    CGImageRelease(image);
-
-    XCTAssertNotNil(buffer = [buffer dilateWithKernelSize:NSMakeSize(3, 3) error:&error], @"%@", error);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]
+                               dilateWithKernelSize:NSMakeSize(3, 3) error:&error]);
 
     vector_uchar4 black = { 0, 0, 0, 255 };
     vector_uchar4 white = { 255, 255, 255, 255 };
@@ -200,22 +189,19 @@
 }
 
 - (void)testErode {
-    NSError * __autoreleasing error;
-
     CGContextRef context = CGBitmapContextCreate(NULL, 16, 16, 8, 0, [NSColorSpace sRGBColorSpace].CGColorSpace,
                                                  kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);
     CGContextSetRGBFillColor(context, 1, 1, 1, 1);
     CGContextFillRect(context, CGRectMake(0, 0, 16, 16));
     CGContextSetRGBFillColor(context, 0, 0, 0, 1);
     CGContextFillRect(context, CGRectMake(4, 4, 8, 8));
-    CGImageRef image = CGBitmapContextCreateImage(context);
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
     CGContextRelease(context);
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+    IABuffer *buffer;
 
-    CGImageRelease(image);
-
-    XCTAssertNotNil(buffer = [buffer erodeWithKernelSize:NSMakeSize(3, 3) error:&error], @"%@", error);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]
+                               erodeWithKernelSize:NSMakeSize(3, 3) error:&error]);
 
     vector_uchar4 black = { 0, 0, 0, 255 };
     vector_uchar4 white = { 255, 255, 255, 255 };
@@ -234,8 +220,6 @@
 }
 
 - (void)testDilateFuzzy {
-    NSError * __autoreleasing error;
-
     CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
     CFArrayRef colors = CFArrayCreate(kCFAllocatorDefault, (const void*[]) { CGColorGetConstantColor(kCGColorBlack), CGColorGetConstantColor(kCGColorWhite) }, 2, &kCFTypeArrayCallBacks);
     CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, colors, NULL);
@@ -249,21 +233,18 @@
     CGContextDrawRadialGradient(context, gradient, CGPointMake(size/2,size/2), 0, CGPointMake(size/2,size/2), size/2 - 1, kCGGradientDrawsAfterEndLocation);
     CGGradientRelease(gradient);
 
-    CGImageRef image = CGBitmapContextCreateImage(context);
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
     CGContextRelease(context);
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+    IABuffer *buffer;
 
-    CGImageRelease(image);
-
-    XCTAssertNotNil(buffer = [buffer dilateWithKernelSize:NSMakeSize(32, 32) error:&error], @"%@", error);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]
+                               dilateWithKernelSize:NSMakeSize(32, 32) error:&error]);
 
     WRITE_TO_FILE(buffer, dilate);
 }
 
 - (void)testErodeFuzzy {
-    NSError * __autoreleasing error;
-
     CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
     CFArrayRef colors = CFArrayCreate(kCFAllocatorDefault, (const void*[]) { CGColorGetConstantColor(kCGColorBlack), CGColorGetConstantColor(kCGColorWhite) }, 2, &kCFTypeArrayCallBacks);
     CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, colors, NULL);
@@ -277,16 +258,62 @@
     CGContextDrawRadialGradient(context, gradient, CGPointMake(size/2,size/2), 0, CGPointMake(size/2,size/2), size/2 - 1, kCGGradientDrawsAfterEndLocation);
     CGGradientRelease(gradient);
 
-    CGImageRef image = CGBitmapContextCreateImage(context);
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
     CGContextRelease(context);
 
-    IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+    IABuffer *buffer;
 
-    CGImageRelease(image);
-
-    XCTAssertNotNil(buffer = [buffer erodeWithKernelSize:NSMakeSize(32, 32) error:&error], @"%@", error);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]
+                               erodeWithKernelSize:NSMakeSize(32, 32) error:&error]);
 
     WRITE_TO_FILE(buffer, erode);
+}
+
+- (void)testExtractAndMergePlanes {
+    id source = CFBridgingRelease(CGImageSourceCreateWithURL((CFURLRef)_imageURLs[0], NULL));
+    id image = CFBridgingRelease(CGImageSourceCreateImageAtIndex((CGImageSourceRef)source, 0, NULL));
+
+    IABuffer *buffer;
+    NSArray<IABuffer *> *planes;
+
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithImage:(CGImageRef)image error:&error]);
+    XCTAssertNoError(planes = [buffer extractAllPlanesAndReturnError:&error]);
+    XCTAssertEqual(planes.count, 4);
+
+    for (NSUInteger y = 0; y < buffer.height; ++y) {
+        const vector_uchar4 *row = [buffer getRow:y];
+        const uint8_t *rowR = [planes[0] getRow:y];
+        const uint8_t *rowG = [planes[1] getRow:y];
+        const uint8_t *rowB = [planes[2] getRow:y];
+        const uint8_t *rowA = [planes[3] getRow:y];
+        for (NSUInteger x = 0; x < buffer.width; ++x) {
+            vector_uchar4 pixel = row[x];
+            XCTAssertEqual((int)(pixel.x), (int)(rowR[x]));
+            XCTAssertEqual((int)(pixel.y), (int)(rowG[x]));
+            XCTAssertEqual((int)(pixel.z), (int)(rowB[x]));
+            XCTAssertEqual((int)(pixel.w), (int)(rowA[x]));
+        }
+    }
+
+    WRITE_TO_FILE(planes[0], plane-R);
+    WRITE_TO_FILE(planes[1], plane-G);
+    WRITE_TO_FILE(planes[2], plane-B);
+    WRITE_TO_FILE(planes[3], plane-A);
+
+    IABuffer *merged;
+
+    XCTAssertNoError(merged = [[IABuffer alloc] initWithPlanes:planes error:&error]);
+
+    for (NSUInteger y = 0; y < buffer.height; ++y) {
+        const vector_uchar4 *expected = [buffer getRow:y];
+        const vector_uchar4 *actual   = [merged getRow:y];
+
+        for (NSUInteger x = 0; x < buffer.width; ++x) {
+            XCTAssert(vector_all(expected[x] == actual[x]));
+        }
+    }
+
+    WRITE_TO_FILE(merged, merged);
 }
 
 - (void)testExtractBorderMaskPerformance {

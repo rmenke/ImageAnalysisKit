@@ -90,6 +90,7 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
                     colorSpace:(nullable NSColorSpace *)colorSpace
                          error:(NSError **)error {
     self = [super init];
+
     if (self) {
         format.bitsPerComponent = (uint32_t)bitsPerComponent;
         format.bitsPerPixel = (uint32_t)bitsPerPixel;
@@ -135,6 +136,7 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
             return nil;
         }
     }
+
     return self;
 }
 
@@ -159,7 +161,58 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
             return nil;
         }
     }
-    
+
+    return self;
+}
+
+- (instancetype)initWithPlanes:(NSArray<IABuffer *> *)planes error:(NSError **)error {
+    NSParameterAssert(planes.count == 4);
+
+    vImagePixelCount height = planes[0]->buffer.height;
+    vImagePixelCount width  = planes[0]->buffer.width;
+    vImagePixelCount bitsPerComponent = planes[0]->format.bitsPerComponent;
+
+    __block NSError *_error = nil;
+
+    if (planes[1]->format.bitsPerPixel != planes[1]->format.bitsPerComponent || planes[1]->format.bitsPerComponent != bitsPerComponent) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidImageFormat userInfo:nil];
+        return nil;
+    }
+    if (planes[1]->buffer.height != height || planes[1]->buffer.width != width) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageBufferSizeMismatch userInfo:nil];
+        return nil;
+    }
+    if (planes[2]->format.bitsPerPixel != planes[2]->format.bitsPerComponent || planes[2]->format.bitsPerComponent != bitsPerComponent) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidImageFormat userInfo:nil];
+        return nil;
+    }
+    if (planes[2]->buffer.height != height || planes[2]->buffer.width != width) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageBufferSizeMismatch userInfo:nil];
+        return nil;
+    }
+    if (planes[3]->format.bitsPerPixel != planes[3]->format.bitsPerComponent || planes[3]->format.bitsPerComponent != bitsPerComponent) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidImageFormat userInfo:nil];
+        return nil;
+    }
+    if (planes[3]->buffer.height != height || planes[3]->buffer.width != width) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageBufferSizeMismatch userInfo:nil];
+        return nil;
+    }
+
+    self = [self initWithHeight:height width:width bitsPerComponent:bitsPerComponent bitsPerPixel:(4 * bitsPerComponent) colorSpace:[NSColorSpace sRGBColorSpace] error:error];
+
+    if (self) {
+        // TODO: Support floating-point merges
+        NSParameterAssert(format.bitsPerComponent == 8);
+
+        vImage_Error code = vImageConvert_Planar8toARGB8888(&(planes[0]->buffer), &(planes[1]->buffer), &(planes[2]->buffer), &(planes[3]->buffer), &buffer, kvImageNoFlags);
+
+        if (code != kvImageNoError) {
+            if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+            return nil;
+        }
+    }
+
     return self;
 }
 
@@ -198,10 +251,13 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     }
 
     vImage_Error code = vImageMax(&buffer, &(result->buffer), NULL, 0, 0, kernelSize.height, kernelSize.width, kvImageNoFlags);
-    if (code == kvImageNoError) return result;
 
-    if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
-    return nil;
+    if (code != kvImageNoError) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+        return nil;
+    }
+
+    return result;
 }
 
 - (IABuffer *)erodeWithKernelSize:(NSSize)kernelSize error:(NSError **)error {
@@ -234,10 +290,13 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     }
 
     vImage_Error code = vImageMin(&buffer, &(result->buffer), NULL, 0, 0, kernelSize.height, kernelSize.width, kvImageNoFlags);
-    if (code == kvImageNoError) return result;
 
-    if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
-    return nil;
+    if (code != kvImageNoError) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+        return nil;
+    }
+
+    return result;
 }
 
 - (nullable IABuffer *)extractAlphaChannelAndReturnError:(NSError **)error {
@@ -252,10 +311,13 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
         (format.bitsPerPixel == 32) ? vImageExtractChannel_ARGB8888 : vImageExtractChannel_ARGBFFFF;
 
     vImage_Error code = vImageExtractChannel(&buffer, &(result->buffer), 3, kvImageNoFlags);
-    if (code == kvImageNoError) return result;
 
-    if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
-    return nil;
+    if (code != kvImageNoError) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+        return nil;
+    }
+
+    return result;
 }
 
 - (nullable IABuffer *)extractBorderMaskAndReturnError:(NSError **)error {
@@ -307,8 +369,38 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
         if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
         return nil;
     }
-    
+
     return maskBuffer;
+}
+
+- (NSArray<IABuffer *> *)extractAllPlanesAndReturnError:(NSError **)error {
+    vImage_Error code;
+
+    NSColorSpace *genericGrayColorSpace = [NSColorSpace genericGrayColorSpace];
+
+    IABuffer *bufferA = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerComponent colorSpace:genericGrayColorSpace error:error];
+    if (!bufferA) return nil;
+
+    IABuffer *bufferR = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerComponent colorSpace:genericGrayColorSpace error:error];
+    if (!bufferR) return nil;
+
+    IABuffer *bufferG = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerComponent colorSpace:genericGrayColorSpace error:error];
+    if (!bufferG) return nil;
+
+    IABuffer *bufferB = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerComponent colorSpace:genericGrayColorSpace error:error];
+    if (!bufferB) return nil;
+
+    // TODO: Support floating-point extractions
+    NSParameterAssert(format.bitsPerComponent == 8);
+
+    code = vImageConvert_ARGB8888toPlanar8(&buffer, &(bufferA->buffer), &(bufferR->buffer), &(bufferG->buffer), &(bufferB->buffer), kvImageNoFlags);
+
+    if (code != kvImageNoError) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+        return nil;
+    }
+
+    return @[bufferA, bufferR, bufferG, bufferB];
 }
 
 - (BOOL)writePNGFileToURL:(NSURL *)url error:(NSError **)error {
