@@ -220,13 +220,12 @@ namespace cf {
         CFDictionaryApplyFunction(dictionary, applier, &function);
     }
 
-    static inline CFTypeRef _get(CFDictionaryRef dictionary, CFTypeRef key) {
+    static inline CFTypeRef _get(CFDictionaryRef dictionary, CFStringRef key) {
         CHECK_CF_TYPE(dictionary, CFDictionary);
 
         CFTypeRef value;
         if (!CFDictionaryGetValueIfPresent(dictionary, key, &value)) {
-            auto description = managed<CFStringRef> { CFCopyDescription(key) };
-            throw std::out_of_range { "No dictionary parameter " + get(description.get()) };
+            throw std::out_of_range { "No dictionary parameter “" + get(key) + ".”" };
         }
         return value;
     }
@@ -240,7 +239,7 @@ namespace cf {
      * @throw std::out_of_range If the key does not exist in the
      *   dictionary.
      */
-    template <typename T> static inline std::enable_if_t<cf_typeinfo<T>::is_number, T> get(CFDictionaryRef dictionary, CFTypeRef key) {
+    template <typename T> static inline std::enable_if_t<cf_typeinfo<T>::is_number, T> get(CFDictionaryRef dictionary, CFStringRef key) {
         return get<T>(static_cast<CFNumberRef>(_get(dictionary, key)));
     }
 
@@ -274,7 +273,14 @@ namespace cf {
      *   error domain and POSIX error number.
      */
     static inline CFErrorRef system_error(const std::system_error &ex) {
-        return error(ex, kCFErrorDomainPOSIX, ex.code().value());
+        const std::error_code &code = ex.code();
+
+        if (code.category() == std::generic_category()) {
+            return error(ex, kCFErrorDomainPOSIX, code.value());
+        }
+        else {
+            return error(ex, CFSTR("GeneralErrorDomain"), code.value());
+        }
     }
 }
 
