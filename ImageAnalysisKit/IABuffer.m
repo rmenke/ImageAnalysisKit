@@ -174,6 +174,10 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
 
     __block NSError *_error = nil;
 
+    if (planes[0]->format.bitsPerPixel != planes[0]->format.bitsPerComponent) {
+        _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidImageFormat userInfo:nil];
+        return nil;
+    }
     if (planes[1]->format.bitsPerPixel != planes[1]->format.bitsPerComponent || planes[1]->format.bitsPerComponent != bitsPerComponent) {
         _error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidImageFormat userInfo:nil];
         return nil;
@@ -202,10 +206,18 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     self = [self initWithHeight:height width:width bitsPerComponent:bitsPerComponent bitsPerPixel:(4 * bitsPerComponent) colorSpace:[NSColorSpace sRGBColorSpace] error:error];
 
     if (self) {
-        // TODO: Support floating-point merges
-        NSParameterAssert(format.bitsPerComponent == 8);
+        vImage_Error (*vImageConvert)(const vImage_Buffer *, const vImage_Buffer *, const vImage_Buffer *, const vImage_Buffer *, const vImage_Buffer *, vImage_Flags);
 
-        vImage_Error code = vImageConvert_Planar8toARGB8888(&(planes[0]->buffer), &(planes[1]->buffer), &(planes[2]->buffer), &(planes[3]->buffer), &buffer, kvImageNoFlags);
+        if (format.bitsPerComponent == 8) {
+            vImageConvert = vImageConvert_Planar8toARGB8888;
+        }
+        else {
+            NSAssert(format.bitsPerComponent == 32, @"Unsupported image type");
+            vImageConvert = vImageConvert_PlanarFtoARGBFFFF;
+        }
+
+
+        vImage_Error code = vImageConvert(&(planes[0]->buffer), &(planes[1]->buffer), &(planes[2]->buffer), &(planes[3]->buffer), &buffer, kvImageNoFlags);
 
         if (code != kvImageNoError) {
             if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
@@ -276,7 +288,7 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
             vImageMin = vImageMin_Planar8;
         }
         else {
-            assert(format.bitsPerPixel == 32);
+            NSAssert(format.bitsPerPixel == 32, @"Unsupported image type");
             vImageMin = vImageMin_ARGB8888;
         }
     } else {
@@ -284,7 +296,7 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
             vImageMin = vImageMin_PlanarF;
         }
         else {
-            assert(format.bitsPerPixel == 128);
+            NSAssert(format.bitsPerPixel == 128, @"Unsupported image type");
             vImageMin = vImageMin_ARGBFFFF;
         }
     }
@@ -299,7 +311,46 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     return result;
 }
 
-- (nullable IABuffer *)extractAlphaChannelAndReturnError:(NSError **)error {
+- (IABuffer *)subtractBuffer:(IABuffer *)subtrahend error:(NSError **)error {
+    if (format.bitsPerPixel != 8 || subtrahend->format.bitsPerPixel != 8) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidImageFormat
+                                            userInfo:@{NSLocalizedDescriptionKey:@"Only 8-bit images supported for subtraction operation."}];
+        return nil;
+    }
+
+    if (buffer.width != subtrahend->buffer.width || buffer.height != subtrahend->buffer.height) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain
+                                                code:kvImageBufferSizeMismatch userInfo:nil];
+        return nil;
+    }
+
+    IABuffer *result = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width
+                                       bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerPixel
+                                             colorSpace:[[NSColorSpace alloc] initWithCGColorSpace:format.colorSpace]
+                                                  error:error];
+    if (!result) return nil;
+
+    const NSUInteger row_width = (buffer.width + 15) >> 4;
+
+    const vImage_Buffer *a = &buffer;
+    const vImage_Buffer *b = &subtrahend->buffer;
+    const vImage_Buffer *d = &result->buffer;
+
+    dispatch_apply(buffer.height, dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^(size_t y) {
+        const vector_uchar16 *srcA = a->data + a->rowBytes * y;
+        const vector_uchar16 *srcB = b->data + b->rowBytes * y;
+        vector_uchar16 *dst        = d->data + d->rowBytes * y;
+        vector_uchar16 *const end  = dst + row_width;
+
+        do {
+            *dst = *srcA - *srcB;
+        } while (++srcA, ++srcB, ++dst < end);
+    });
+
+    return result;
+}
+
+- (nullable IABuffer *)extractChannel:(NSUInteger)channel error:(NSError **)error {
     if (format.bitsPerComponent * 4 != format.bitsPerPixel) {
         if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:kvImageInvalidParameter userInfo:nil];
     }
@@ -310,7 +361,7 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     vImage_Error (*vImageExtractChannel)(const vImage_Buffer *, const vImage_Buffer *, long, vImage_Flags) =
         (format.bitsPerPixel == 32) ? vImageExtractChannel_ARGB8888 : vImageExtractChannel_ARGBFFFF;
 
-    vImage_Error code = vImageExtractChannel(&buffer, &(result->buffer), 3, kvImageNoFlags);
+    vImage_Error code = vImageExtractChannel(&buffer, &(result->buffer), channel, kvImageNoFlags);
 
     if (code != kvImageNoError) {
         if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
@@ -355,7 +406,7 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     addAlpha(&(labBuffer->buffer), 0, buffer.height - 1, 13.7f);
     addAlpha(&(labBuffer->buffer), buffer.width - 1, buffer.height - 1, 13.7f);
 
-    IABuffer *alphaBuffer = [labBuffer extractAlphaChannelAndReturnError:error];
+    IABuffer *alphaBuffer = [labBuffer extractChannel:3 error:error];
     if (!alphaBuffer) return nil;
 
     IABuffer *maskBuffer = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width

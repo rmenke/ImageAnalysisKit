@@ -32,14 +32,16 @@ FOUNDATION_EXPORT NSString * const ImageAnalysisKitErrorDomain;
 - (nullable IABuffer *)dilateWithKernelSize:(NSSize)kernelSize error:(NSError **)error;
 - (nullable IABuffer *)erodeWithKernelSize:(NSSize)kernelSize error:(NSError **)error;
 
-- (nullable IABuffer *)extractAlphaChannelAndReturnError:(NSError **)error;
+- (nullable IABuffer *)subtractBuffer:(IABuffer *)buffer error:(NSError **)error;
+
+- (nullable IABuffer *)extractChannel:(NSUInteger)channel error:(NSError **)error;
 - (nullable IABuffer *)extractBorderMaskAndReturnError:(NSError **)error;
 
 - (nullable NSArray<IABuffer *> *)extractAllPlanesAndReturnError:(NSError **)error;
 
 - (BOOL)writePNGFileToURL:(NSURL *)url error:(NSError **)error;
 
-- (void *)getRow:(NSUInteger)row;
+- (void *)getRow:(NSUInteger)row NS_RETURNS_INNER_POINTER;
 
 @end
 

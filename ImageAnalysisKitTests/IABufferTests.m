@@ -85,7 +85,7 @@
 
     IABuffer *buffer;
 
-    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(CGImageRef)image error:&error] extractAlphaChannelAndReturnError:&error]);
+    XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(CGImageRef)image error:&error] extractChannel:3 error:&error]);
 
     uint8_t *row = [buffer getRow:140];
     XCTAssertEqual(row[75], 255);
