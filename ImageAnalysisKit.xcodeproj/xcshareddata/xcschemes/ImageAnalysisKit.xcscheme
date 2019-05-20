@@ -20,6 +20,20 @@
                ReferencedContainer = "container:ImageAnalysisKit.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E132CC5622669D420021A732"
+               BuildableName = "ImageAnalysisKitTests.xctest"
+               BlueprintName = "ImageAnalysisKitTests"
+               ReferencedContainer = "container:ImageAnalysisKit.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

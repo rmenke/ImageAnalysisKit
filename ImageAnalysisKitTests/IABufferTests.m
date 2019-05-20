@@ -8,12 +8,16 @@
 
 @import XCTest;
 @import ImageAnalysisKit;
+@import CoreImage;
 
 #include <inttypes.h>
 
-#ifdef PRODUCE_TEST_IMAGES
+#ifdef TEST_IMAGE_DIR
     #define WRITE_TO_FILE(BUFFER, TAG) do { \
-        [(BUFFER) writePNGFileToURL:[NSURL fileURLWithPath:@("~/Desktop/test-" #TAG ".png").stringByExpandingTildeInPath] error:NULL]; \
+        NSURL *dir = [NSURL fileURLWithPath:(TEST_IMAGE_DIR).stringByExpandingTildeInPath isDirectory:YES]; \
+        NSURL *url = [NSURL fileURLWithPath:@"test-" @#TAG @".png" isDirectory:NO relativeToURL:dir]; \
+        [[NSFileManager defaultManager] createDirectoryAtURL:dir withIntermediateDirectories:YES attributes:nil error:NULL]; \
+        [(BUFFER) writePNGFileToURL:url error:NULL]; \
     } while (0)
 #else
     #define WRITE_TO_FILE(BUFFER, TAG) do {} while (0)
@@ -21,7 +25,7 @@
 
 #define XCTAssertNoError(EXPRESSION, ...) do { \
     NSError * __autoreleasing error; \
-    XCTAssert((EXPRESSION), @"%@" __VA_ARGS__, error); \
+    XCTAssert((EXPRESSION), @"error - %@" __VA_ARGS__, error); \
 } while (0)
 
 @interface IABufferTests : XCTestCase
@@ -325,6 +329,7 @@
     const NSUInteger size = 256;
 
     CGContextRef context = CGBitmapContextCreate(NULL, size, size, 8, 0, colorSpace, kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);
+    CGColorSpaceRelease(colorSpace);
     CGContextSetRGBFillColor(context, 1, 1, 1, 1);
     CGContextFillRect(context, CGRectMake(0, 0, size, size));
     CGContextDrawRadialGradient(context, gradient, CGPointMake(size/2,size/2), 0, CGPointMake(size/2,size/2), size/2 - 1, kCGGradientDrawsAfterEndLocation);
@@ -341,6 +346,76 @@
         XCTAssertNotNil([buffer extractBorderMaskAndReturnError:NULL]);
         [self stopMeasuring];
     }];
+}
+
+- (void)testHoughPipeline {
+    NSError * __autoreleasing error;
+
+    for (NSURL *url in _imageURLs) {
+        CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
+        CGImageRef image  = CGImageSourceCreateImageAtIndex(source, 0, NULL);
+        CFRelease(source);
+
+        IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+
+        CGImageRelease(image);
+
+        buffer = [buffer extractBorderMaskAndReturnError:&error];
+        buffer = [[buffer erodeWithKernelSize:NSMakeSize(3, 3) error:&error] dilateWithKernelSize:NSMakeSize(3, 3) error:&error];
+        buffer = [[buffer dilateWithKernelSize:NSMakeSize(3, 3) error:&error] subtractBuffer:buffer error:&error];
+        XCTAssertNotNil(buffer, @"error - %@", error);
+
+        NSArray<NSValue *> *result = [buffer extractSegmentsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@20, @"channelWidth":@5} error:&error];
+        XCTAssertNotNil(result, @"error - %@", error);
+
+#ifdef TEST_IMAGE_DIR
+        image = [buffer newCGImageAndReturnError:&error];
+
+        CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+        CGContextRef context = CGBitmapContextCreate(NULL, CGImageGetWidth(image), CGImageGetHeight(image), 8, 0, colorSpace, kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast);
+
+        CGContextSetGrayFillColor(context, 0.00, 1.00);
+        CGContextAddRect(context, CGRectMake(0, 0, CGBitmapContextGetWidth(context), CGBitmapContextGetHeight(context)));
+        CGContextFillPath(context);
+
+        CGContextSetAlpha(context, 0.25);
+        CGContextDrawImage(context, CGRectMake(0, 0, CGBitmapContextGetWidth(context), CGBitmapContextGetHeight(context)), image);
+        CGContextSetAlpha(context, 1.00);
+        CGImageRelease(image);
+
+        CGContextTranslateCTM(context, 0.00, CGBitmapContextGetHeight(context));
+        CGContextScaleCTM(context, 1.00, -1.00);
+
+        for (NSValue *value in result) {
+            CGPoint points[2];
+
+            [value getValue:points];
+
+            CGContextAddLines(context, points, 2);
+        }
+
+        CGContextSetRGBStrokeColor(context, 1.00, 0.00, 0.00, 1.00);
+        CGContextStrokePath(context);
+
+        image = CGBitmapContextCreateImage(context);
+        CGContextRelease(context);
+
+        NSURL *dir = [NSURL fileURLWithPath:(TEST_IMAGE_DIR).stringByExpandingTildeInPath isDirectory:YES];
+        [[NSFileManager defaultManager] createDirectoryAtURL:dir withIntermediateDirectories:YES attributes:nil error:NULL];
+        NSString *base = [url.lastPathComponent.stringByDeletingPathExtension stringByAppendingPathExtension:@"png"];
+        base = [base stringByReplacingOccurrencesOfString:@"-image-" withString:@"-pipeline-"];
+
+        CFURLRef cfurl = CFBridgingRetain([NSURL fileURLWithPath:base relativeToURL:dir]);
+        CGImageDestinationRef destination = CGImageDestinationCreateWithURL(cfurl, kUTTypePNG, 1, NULL);
+        CFRelease(cfurl);
+
+        CGImageDestinationAddImage(destination, image, NULL);
+        CGImageRelease(image);
+        CGImageDestinationFinalize(destination);
+
+        CFRelease(destination);
+#endif
+    }
 }
 
 @end

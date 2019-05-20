@@ -8,7 +8,7 @@
 
 #import "IABuffer.h"
 
-#include "vimage_buffer_util.h"
+#include "IABufferAnalysis.h"
 
 @import Accelerate.vImage;
 @import AppKit.NSColorSpace;
@@ -216,7 +216,6 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
             vImageConvert = vImageConvert_PlanarFtoARGBFFFF;
         }
 
-
         vImage_Error code = vImageConvert(&(planes[0]->buffer), &(planes[1]->buffer), &(planes[2]->buffer), &(planes[3]->buffer), &buffer, kvImageNoFlags);
 
         if (code != kvImageNoError) {
@@ -372,6 +371,10 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
 }
 
 - (nullable IABuffer *)extractBorderMaskAndReturnError:(NSError **)error {
+    return [self extractBorderMaskWithFuzziness:13.7f error:error];
+}
+
+- (nullable IABuffer *)extractBorderMaskWithFuzziness:(float)fuzziness error:(NSError * _Nullable __autoreleasing *)error {
     CGFloat whitePoint[] = { 0.95047, 1.0, 1.08883 };
     CGFloat blackPoint[] = { 0, 0, 0 };
     CGFloat range[] = { -127, 127, -127, 127 };
@@ -401,13 +404,15 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
         return nil;
     }
 
-    addAlpha(&(labBuffer->buffer), 0, 0, 13.7f);
-    addAlpha(&(labBuffer->buffer), buffer.width - 1, 0, 13.7f);
-    addAlpha(&(labBuffer->buffer), 0, buffer.height - 1, 13.7f);
-    addAlpha(&(labBuffer->buffer), buffer.width - 1, buffer.height - 1, 13.7f);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), 0, 0, fuzziness);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), buffer.width - 1, 0, fuzziness);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), 0, buffer.height - 1, fuzziness);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), buffer.width - 1, buffer.height - 1, fuzziness);
 
     IABuffer *alphaBuffer = [labBuffer extractChannel:3 error:error];
     if (!alphaBuffer) return nil;
+
+    if (format.bitsPerComponent == 32) return alphaBuffer;
 
     IABuffer *maskBuffer = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width
                                            bitsPerComponent:8 bitsPerPixel:8
@@ -441,10 +446,17 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     IABuffer *bufferB = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerComponent colorSpace:genericGrayColorSpace error:error];
     if (!bufferB) return nil;
 
-    // TODO: Support floating-point extractions
-    NSParameterAssert(format.bitsPerComponent == 8);
+    vImage_Error (*vImageConvert)(const vImage_Buffer *, const vImage_Buffer *, const vImage_Buffer *, const vImage_Buffer *, const vImage_Buffer *, vImage_Flags);
 
-    code = vImageConvert_ARGB8888toPlanar8(&buffer, &(bufferA->buffer), &(bufferR->buffer), &(bufferG->buffer), &(bufferB->buffer), kvImageNoFlags);
+    if (format.bitsPerComponent == 8) {
+        vImageConvert = vImageConvert_ARGB8888toPlanar8;
+    }
+    else {
+        NSAssert(format.bitsPerComponent == 32, @"Unsupported image type");
+        vImageConvert = vImageConvert_ARGBFFFFtoPlanarF;
+    }
+
+    code = vImageConvert(&buffer, &(bufferA->buffer), &(bufferR->buffer), &(bufferG->buffer), &(bufferB->buffer), kvImageNoFlags);
 
     if (code != kvImageNoError) {
         if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
@@ -454,15 +466,42 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     return @[bufferA, bufferR, bufferG, bufferB];
 }
 
-- (BOOL)writePNGFileToURL:(NSURL *)url error:(NSError **)error {
-    vImage_Error code;
-
-    id image = CFBridgingRelease(vImageCreateCGImageFromBuffer(&buffer, &format, NULL, NULL, kvImageNoFlags, &code));
-
-    if (!image) {
-        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
-        return NO;
+- (NSArray<NSValue *> *)extractSegmentsWithParameters:(NSDictionary<NSString *,id> *)parameters error:(NSError **)error {
+    CFErrorRef cfError;
+    NSArray<NSArray<NSNumber *> *> *segments = CFBridgingRelease(IACreateSegmentArray(&buffer, (__bridge CFDictionaryRef)(parameters), error ? &cfError : NULL));
+    if (!segments) {
+        if (error) *error = CFBridgingRelease(cfError);
+        return nil;
     }
+
+    NSMutableArray<NSValue *> *result = [NSMutableArray arrayWithCapacity:segments.count];
+
+    for (NSArray<NSNumber *> *segment in segments) {
+        CGPoint s[2];
+
+        s[0].x = segment[0].doubleValue;
+        s[0].y = segment[1].doubleValue;
+        s[1].x = segment[2].doubleValue;
+        s[1].y = segment[3].doubleValue;
+
+        [result addObject:[NSValue valueWithBytes:s objCType:@encode(CGPoint[2])]];
+    }
+
+    return result;
+}
+
+- (CGImageRef)newCGImageAndReturnError:(NSError **)error {
+    vImage_Error code = kvImageNoError;
+
+    CGImageRef image = vImageCreateCGImageFromBuffer(&buffer, &format, NULL, NULL, kvImageNoFlags, &code);
+    if (image == NULL && error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+
+    return image;
+}
+
+- (BOOL)writePNGFileToURL:(NSURL *)url error:(NSError **)error {
+    id image = CFBridgingRelease([self newCGImageAndReturnError:error]);
+    if (!image) return NO;
 
     id destination = CFBridgingRelease(CGImageDestinationCreateWithURL((CFURLRef)url, kUTTypePNG, 1, NULL));
     NSAssert(destination != nil, @"Unable to create image destination");
