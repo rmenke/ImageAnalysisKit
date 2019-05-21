@@ -24,7 +24,7 @@ namespace IA {
     public:
         Segment(const managed_buffer<status_t> &buffer) : buffer(buffer) { }
         Segment(const Segment &) = delete;
-        Segment(Segment &&r) : tuple(r), buffer(r.buffer), points(std::move(r.points)), valid(r.valid) {
+        Segment(Segment &&r) : segment_t(r), buffer(r.buffer), points(std::move(r.points)), valid(r.valid) {
             r.valid = false;
         }
 
@@ -47,11 +47,9 @@ namespace IA {
         void extend(double x, double y) {
             if (!valid) {
                 valid = true;
-                std::get<0>(*this) = x;
-                std::get<1>(*this) = y;
+                this->first = vector2(x, y);
             }
-            std::get<2>(*this) = x;
-            std::get<3>(*this) = y;
+            this->second = vector2(x, y);
         }
 
         bool empty() const {
@@ -104,12 +102,6 @@ namespace IA {
             }
             
             points.erase(end, points.end());
-        }
-
-        double length_squared() const {
-            auto dx = std::get<2>(*this) - std::get<0>(*this);
-            auto dy = std::get<3>(*this) - std::get<1>(*this);
-            return dx * dx + dy * dy;
         }
     };
 }

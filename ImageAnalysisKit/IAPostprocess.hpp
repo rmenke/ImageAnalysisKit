@@ -12,7 +12,7 @@
 #include "IABase.hpp"
 
 namespace IA {
-    extern bool in_channel(const segment_t &, double theta, double r);
+    extern bool in_channel(point_t p1, point_t p2, simd::double2 cossin, double r);
     extern bool fuse(segment_t &s, const segment_t &t);
 
     template <class Iterator>
@@ -27,14 +27,16 @@ namespace IA {
             not_done = false;
 
             for (auto i = _first; i != _last; ++i) {
-                // This is not wrong -- arctan(-∆x/∆y) is the angle of inclination for the normal.
-                const auto theta = atan2(get<0>(*i) - get<2>(*i), get<3>(*i) - get<1>(*i));
-                const auto r = get<0>(*i) * cos(theta) + get<1>(*i) * sin(theta);
+                auto delta = i->second - i->first;
+
+                // Rather than calculating the angle then taking the cosine and sine of it, normalize the delta and rotate it.
+                const auto cossin = delta.yx * simd::double2 { 1.0, -1.0 } / simd::length(delta);
+                const auto r = simd::dot(cossin, i->first);
 
                 for (auto j = i; j != _first; --j) {
                     auto &segment = *(j-1);
 
-                    if (in_channel(segment, theta, r) && fuse(*i, segment)) {
+                    if (in_channel(segment.first, segment.second, cossin, r) && fuse(*i, segment)) {
                         *(j++) = std::move(*(_first++));
                         not_done = true;
                     }
@@ -43,7 +45,7 @@ namespace IA {
                 for (auto j = i + 1; j != _last; ++j) {
                     auto &segment = *j;
 
-                    if (in_channel(segment, theta, r) && fuse(*i, segment)) {
+                    if (in_channel(segment.first, segment.second, cossin, r) && fuse(*i, segment)) {
                         *(j--) = std::move(*(--_last));
                         not_done = true;
                     }

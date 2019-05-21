@@ -131,9 +131,7 @@
 
     IA::UserParameters param { (__bridge CFDictionaryRef)(@{@"sensitivity":@12, @"maxGap":@3, @"minSegmentLength":@10, @"channelWidth":@3}) };
 
-    for (auto &segment : IA::Scoreboard(&buffer, param)) {
-        NSLog(@"(%f,%f) -> (%f, %f)", std::get<0>(segment), std::get<1>(segment), std::get<2>(segment), std::get<3>(segment));
-    }
+    for (__unused auto &segment : IA::Scoreboard(&buffer, param)) { }
 }
 
 - (void)testHoughSimple2 {
@@ -154,9 +152,7 @@
 
     IA::UserParameters param { (__bridge CFDictionaryRef)(@{@"sensitivity":@8, @"maxGap":@4, @"minSegmentLength":@5, @"channelWidth":@3}) };
 
-    for (auto &segment : IA::Scoreboard(&buffer, param)) {
-        NSLog(@"(%f,%f) -> (%f, %f)", std::get<0>(segment), std::get<1>(segment), std::get<2>(segment), std::get<3>(segment));
-    }
+    for (__unused auto &segment : IA::Scoreboard(&buffer, param)) { }
 }
 
 - (void)testHoughRandom {

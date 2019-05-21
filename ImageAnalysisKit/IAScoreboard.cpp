@@ -21,14 +21,12 @@ namespace IA {
     constexpr vImagePixelCount max_theta = 2048;
 
     struct TrigData : std::array<simd::double2, max_theta> {
-        using component_t = std::remove_reference_t<decltype(std::declval<simd::double2>().x)>;
-
         TrigData() {
-            constexpr component_t scale = 2.0f / static_cast<component_t>(max_theta);
+            constexpr double scale = 2.0f / static_cast<double>(max_theta);
             simd::double2 * const value = this->data();
 
             for (auto i = 0; i < max_theta; ++i) {
-                component_t s, c;
+                double s, c;
                 __sincospi(scale * i, &s, &c);
                 value[i] = simd::double2 { c, s };
             }
@@ -271,7 +269,7 @@ namespace IA {
                 if (segments.empty()) continue;
 
                 auto shorter = [] (const Segment &a, const Segment &b) {
-                    return a.length_squared() < a.length_squared();
+                    return length_squared(a) < length_squared(b);
                 };
 
                 auto longest = std::max_element(segments.begin(), segments.end(), shorter);

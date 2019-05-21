@@ -43,12 +43,11 @@ namespace IA {
         marked_voted   = 0xff00ffff
     };
 
-    using segment_t = std::tuple<double, double, double, double>;
+    using point_t   = simd::double2;
+    using segment_t = std::pair<point_t, point_t>;
 
     static inline double length_squared(const segment_t &s) {
-        double dx = std::get<2>(s) - std::get<0>(s);
-        double dy = std::get<3>(s) - std::get<1>(s);
-        return dx * dx + dy * dy;
+        return simd::distance_squared(s.first, s.second);
     }
 
 #define PARAMS(OP,...)  OP(sensitivity,int) __VA_ARGS__ \

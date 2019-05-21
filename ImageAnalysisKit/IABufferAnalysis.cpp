@@ -96,10 +96,10 @@ CFArrayRef _Nullable IACreateSegmentArray(const vImage_Buffer *buffer, CFDiction
         segments.erase(IA::postprocess(segments.begin(), segments.end()), segments.end());
 
         for (const auto &segment : segments) {
-            auto x0 = cf::number(std::get<0>(segment));
-            auto y0 = cf::number(std::get<1>(segment));
-            auto x1 = cf::number(std::get<2>(segment));
-            auto y1 = cf::number(std::get<3>(segment));
+            auto x0 = cf::number(segment.first.x);
+            auto y0 = cf::number(segment.first.y);
+            auto x1 = cf::number(segment.second.x);
+            auto y1 = cf::number(segment.second.y);
 
             auto s = cf::array(x0, y0, x1, y1);
 
