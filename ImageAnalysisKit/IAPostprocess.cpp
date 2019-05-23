@@ -8,51 +8,47 @@
 
 #include "IAPostprocess.hpp"
 
-#include <simd/simd.h>
-
-constexpr double channel_width = 5.0;
+constexpr double channel_width = 3.0;
 constexpr double channel_radius = (channel_width - 1) / 2.0;
 
 namespace IA {
-    bool in_channel(const point_t p1, const point_t p2, const simd::double2 cs, const double r) {
+    bool fuse(segment_t &s, const segment_t &t) {
+        const auto s1 = s.first;
+        const auto s2 = s.second;
+        const auto t1 = t.first;
+        const auto t2 = t.second;
+
+        // Step 1: Verify that t is in the same channel as s.
+
+        const auto d = s2 - s1;
+        const auto n = d.yx * simd::double2 { 1.0, -1.0 } / simd::length(d);
+        const auto r = simd::dot(n, s1);
+
         const auto r_lo = r - channel_radius;
         const auto r_hi = r + channel_radius;
 
-        const auto r1 = simd::dot(cs, p1);
+        const auto r1 = simd::dot(n, t1);
         if (r1 < r_lo || r1 > r_hi) return false;
 
-        const auto r2 = simd::dot(cs, p2);
+        const auto r2 = simd::dot(n, t2);
         if (r2 < r_lo || r2 > r_hi) return false;
 
-        return true;
-    }
+        // Step 2: Verify that the projection of t onto s overlaps s.
 
-    bool fuse(segment_t &s, const segment_t &t) {
-        using namespace std;
+        auto z0 = simd::dot(d, t1 - s1) / simd::dot(d, d);
+        auto z1 = simd::dot(d, t2 - s1) / simd::dot(d, d);
 
-        const auto s0 = s.first;
-        const auto s1 = s.second;
-        const auto sv = s1 - s0;
+        if (z0 > z1) std::swap(z0, z1);
 
-        const auto t0 = t.first;
-        const auto t1 = t.second;
+        if (z1 >= 0 && z0 <= 1.0) {
+            // Step 3: The projection overlaps.  Update s.
 
-        // z0 and z1 are the relative magnitudes of the projection of
-        // t0 - s0, t1 - s0 onto s1 - s0.
-        const auto z0 = simd::dot(sv, t0 - s0) / simd::dot(sv, sv);
-        const auto z1 = simd::dot(sv, t1 - s0) / simd::dot(sv, sv);
+            if (z0 < 0.0) s.first  = s1 + d * z0;
+            if (z1 > 1.0) s.second = s1 + d * z1;
 
-        if ((z0 < 0.0 || z0 > 1.0) && (z1 < 0.0 || z1 > 1.0)) {
-            return false;
+            return true;
         }
 
-        double z_lo, z_hi;
-
-        std::tie(z_lo, z_hi) = std::minmax({ 0.0, 1.0, z0, z1 });
-
-        s.first  = s0 + sv * z_lo;
-        s.second = s0 + sv * z_hi;
-
-        return true;
+        return false;
     }
 }

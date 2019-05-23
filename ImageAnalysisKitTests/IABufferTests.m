@@ -349,9 +349,9 @@
 }
 
 - (void)testHoughPipeline {
-    NSError * __autoreleasing error;
-
-    for (NSURL *url in _imageURLs) {
+    [_imageURLs enumerateObjectsUsingBlock:^(NSURL *url, NSUInteger idx, BOOL *stop) {
+        NSError * __autoreleasing error;
+        
         CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)url, NULL);
         CGImageRef image  = CGImageSourceCreateImageAtIndex(source, 0, NULL);
         CFRelease(source);
@@ -365,8 +365,24 @@
         buffer = [[buffer dilateWithKernelSize:NSMakeSize(3, 3) error:&error] subtractBuffer:buffer error:&error];
         XCTAssertNotNil(buffer, @"error - %@", error);
 
-        NSArray<NSValue *> *result = [buffer extractSegmentsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@20, @"channelWidth":@5} error:&error];
+        NSArray<NSValue *> *result = [buffer extractSegmentsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
         XCTAssertNotNil(result, @"error - %@", error);
+
+        switch (idx) {
+            case 0:
+                XCTAssertEqual(result.count, 12, @"Expected count for %@", url.lastPathComponent);
+                break;
+
+            case 1:
+                XCTAssertEqual(result.count, 16, @"Expected count for %@", url.lastPathComponent);
+                break;
+
+            case 2:
+                XCTAssertEqual(result.count, 20, @"Expected count for %@", url.lastPathComponent);
+
+            default:
+                NSLog(@"Unknown count expected for %@", url.lastPathComponent);
+        }
 
 #ifdef TEST_IMAGE_DIR
         image = [buffer newCGImageAndReturnError:&error];
@@ -392,6 +408,8 @@
             [value getValue:points];
 
             CGContextAddLines(context, points, 2);
+            CGContextAddEllipseInRect(context, CGRectMake(points[0].x - 2, points[0].y - 2, 4, 4));
+            CGContextAddEllipseInRect(context, CGRectMake(points[1].x - 2, points[1].y - 2, 4, 4));
         }
 
         CGContextSetRGBStrokeColor(context, 1.00, 0.00, 0.00, 1.00);
@@ -412,10 +430,10 @@
         CGImageDestinationAddImage(destination, image, NULL);
         CGImageRelease(image);
         CGImageDestinationFinalize(destination);
-
+        
         CFRelease(destination);
 #endif
-    }
+    }];
 }
 
 @end
