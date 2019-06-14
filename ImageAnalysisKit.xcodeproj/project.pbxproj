@@ -10,7 +10,6 @@
 		E111F80A226BA93700A72CCD /* IABuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E111F808226BA93700A72CCD /* IABuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E111F80B226BA93700A72CCD /* IABuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = E111F809226BA93700A72CCD /* IABuffer.m */; };
 		E111F80D226BB57B00A72CCD /* IABufferTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E111F80C226BB57B00A72CCD /* IABufferTests.m */; };
-		E11EB94D228B3C3300294F61 /* IABase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E11EB94C228B3C3300294F61 /* IABase.cpp */; };
 		E132CC5822669D430021A732 /* ImageAnalysisKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E132CC4E22669D420021A732 /* ImageAnalysisKit.framework */; };
 		E132CC5F22669D430021A732 /* ImageAnalysisKit.h in Headers */ = {isa = PBXBuildFile; fileRef = E132CC5122669D420021A732 /* ImageAnalysisKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E132CC6D2266A97D0021A732 /* test-image-1.png in Resources */ = {isa = PBXBuildFile; fileRef = E132CC6C2266A97D0021A732 /* test-image-1.png */; };
@@ -18,7 +17,7 @@
 		E18E15952287B75100952BE2 /* IAScoreboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E18E15932287B75100952BE2 /* IAScoreboard.cpp */; };
 		E18E15962287B75100952BE2 /* IAScoreboard.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E18E15942287B75100952BE2 /* IAScoreboard.hpp */; };
 		E18E159A2287B90300952BE2 /* IAManagedBuffer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E18E15982287B90300952BE2 /* IAManagedBuffer.hpp */; };
-		E18E159E2287BC7100952BE2 /* IASegment.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E18E159C2287BC7100952BE2 /* IASegment.hpp */; };
+		E18E159E2287BC7100952BE2 /* IAPointSet.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E18E159C2287BC7100952BE2 /* IAPointSet.hpp */; };
 		E196A464228D858900FFC88C /* IAPostprocess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E196A462228D858900FFC88C /* IAPostprocess.cpp */; };
 		E196A465228D858900FFC88C /* IAPostprocess.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E196A463228D858900FFC88C /* IAPostprocess.hpp */; };
 		E1D7B7D4227F460700D7BF60 /* IABufferAnalysisTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1D7B7D3227F460700D7BF60 /* IABufferAnalysisTests.mm */; };
@@ -44,7 +43,6 @@
 		E111F808226BA93700A72CCD /* IABuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IABuffer.h; sourceTree = "<group>"; };
 		E111F809226BA93700A72CCD /* IABuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IABuffer.m; sourceTree = "<group>"; };
 		E111F80C226BB57B00A72CCD /* IABufferTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IABufferTests.m; sourceTree = "<group>"; };
-		E11EB94C228B3C3300294F61 /* IABase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IABase.cpp; sourceTree = "<group>"; };
 		E132CC4E22669D420021A732 /* ImageAnalysisKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ImageAnalysisKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E132CC5122669D420021A732 /* ImageAnalysisKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageAnalysisKit.h; sourceTree = "<group>"; };
 		E132CC5222669D420021A732 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -55,7 +53,7 @@
 		E18E15932287B75100952BE2 /* IAScoreboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = IAScoreboard.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E18E15942287B75100952BE2 /* IAScoreboard.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = IAScoreboard.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E18E15982287B90300952BE2 /* IAManagedBuffer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = IAManagedBuffer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		E18E159C2287BC7100952BE2 /* IASegment.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = IASegment.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		E18E159C2287BC7100952BE2 /* IAPointSet.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = IAPointSet.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E196A462228D858900FFC88C /* IAPostprocess.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IAPostprocess.cpp; sourceTree = "<group>"; };
 		E196A463228D858900FFC88C /* IAPostprocess.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IAPostprocess.hpp; sourceTree = "<group>"; };
 		E1D7B7D3227F460700D7BF60 /* IABufferAnalysisTests.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = IABufferAnalysisTests.mm; sourceTree = "<group>"; };
@@ -113,9 +111,8 @@
 				E1EFC8CA22696278005CFC6C /* IABufferAnalysis.h */,
 				E1EFC8C922696278005CFC6C /* IABufferAnalysis.cpp */,
 				E1D8DB912288AF54009B3F2C /* IABase.hpp */,
-				E11EB94C228B3C3300294F61 /* IABase.cpp */,
 				E18E15982287B90300952BE2 /* IAManagedBuffer.hpp */,
-				E18E159C2287BC7100952BE2 /* IASegment.hpp */,
+				E18E159C2287BC7100952BE2 /* IAPointSet.hpp */,
 				E18E15942287B75100952BE2 /* IAScoreboard.hpp */,
 				E18E15932287B75100952BE2 /* IAScoreboard.cpp */,
 				E196A463228D858900FFC88C /* IAPostprocess.hpp */,
@@ -149,7 +146,7 @@
 			files = (
 				E132CC5F22669D430021A732 /* ImageAnalysisKit.h in Headers */,
 				E18E15962287B75100952BE2 /* IAScoreboard.hpp in Headers */,
-				E18E159E2287BC7100952BE2 /* IASegment.hpp in Headers */,
+				E18E159E2287BC7100952BE2 /* IAPointSet.hpp in Headers */,
 				E111F80A226BA93700A72CCD /* IABuffer.h in Headers */,
 				E1EFC8CC22696278005CFC6C /* IABufferAnalysis.h in Headers */,
 				E1D8DB932288AF54009B3F2C /* IABase.hpp in Headers */,
@@ -281,7 +278,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E11EB94D228B3C3300294F61 /* IABase.cpp in Sources */,
 				E111F80B226BA93700A72CCD /* IABuffer.m in Sources */,
 				E196A464228D858900FFC88C /* IAPostprocess.cpp in Sources */,
 				E1EFC8CB22696278005CFC6C /* IABufferAnalysis.cpp in Sources */,

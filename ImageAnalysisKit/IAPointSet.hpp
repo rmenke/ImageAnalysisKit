@@ -1,13 +1,13 @@
 //
-//  IASegment.hpp
+//  IAPointSet.hpp
 //  ImageAnalysisKit
 //
 //  Created by Rob Menke on 5/11/19.
 //  Copyright © 2019 Rob Menke. All rights reserved.
 //
 
-#ifndef IASegment_hpp
-#define IASegment_hpp
+#ifndef IAPointSet_hpp
+#define IAPointSet_hpp
 
 #include "IABase.hpp"
 #include "IAManagedBuffer.hpp"
@@ -15,20 +15,20 @@
 #include <vector>
 
 namespace IA {
-    class Segment : public segment_t {
+    class PointSet : public segment_t {
         const managed_buffer<status_t> &buffer;
         std::vector<std::pair<long, long>> points;
 
         bool valid = false;
 
     public:
-        Segment(const managed_buffer<status_t> &buffer) : buffer(buffer) { }
-        Segment(const Segment &) = delete;
-        Segment(Segment &&r) : segment_t(r), buffer(r.buffer), points(std::move(r.points)), valid(r.valid) {
+        PointSet(const managed_buffer<status_t> &buffer) : buffer(buffer) { }
+        PointSet(const PointSet &) = delete;
+        PointSet(PointSet &&r) : segment_t(r), buffer(r.buffer), points(std::move(r.points)), valid(r.valid) {
             r.valid = false;
         }
 
-        ~Segment() {
+        ~PointSet() {
             for (const auto &p : points) {
                 auto &cell = buffer[p.second][p.first];
 
@@ -41,8 +41,8 @@ namespace IA {
             }
         }
 
-        Segment &operator =(const Segment &) = delete;
-        Segment &operator =(Segment &&r) = delete;
+        PointSet &operator =(const PointSet &) = delete;
+        PointSet &operator =(PointSet &&r) = delete;
 
         void extend(double x, double y) {
             if (!valid) {
@@ -106,4 +106,4 @@ namespace IA {
     };
 }
 
-#endif /* IASegment_hpp */
+#endif /* IAPointSet_hpp */

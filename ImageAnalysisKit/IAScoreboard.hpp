@@ -13,7 +13,7 @@
 
 #include "IABase.hpp"
 #include "IAManagedBuffer.hpp"
-#include "IASegment.hpp"
+#include "IAPointSet.hpp"
 
 #include <cstdint>
 #include <random>
@@ -55,7 +55,7 @@ namespace IA {
 
         static std::pair<double, double> find_range(vImagePixelCount width, vImagePixelCount height, simd::double2 p0, simd::double2 delta);
 
-        std::vector<Segment> scan_channel(vImagePixelCount theta, double rho) const;
+        std::vector<PointSet> scan_channel(vImagePixelCount theta, double rho) const;
 
         struct iterator {
             using difference_type   = std::ptrdiff_t;

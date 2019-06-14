@@ -7,7 +7,6 @@
 //
 
 #include "IAScoreboard.hpp"
-#include "IASegment.hpp"
 
 #include <array>
 #include <set>
@@ -186,14 +185,14 @@ namespace IA {
         return range;
     }
     
-    std::vector<Segment> Scoreboard::scan_channel(vImagePixelCount theta, double rho) const {
+    std::vector<PointSet> Scoreboard::scan_channel(vImagePixelCount theta, double rho) const {
         const simd::double2 norm  = trig[theta];
         const simd::double2 p0    = rho * trig[theta];
         const simd::double2 delta = simd::double2 { -1, +1 } * norm.yx / simd::norm_inf(norm);
 
         auto z_range = find_range(status.width, status.height, p0, delta);
 
-        std::vector<Segment> segments;
+        std::vector<PointSet> segments;
         segments.emplace_back(status);
 
         long gap = std::numeric_limits<long>::min();
@@ -213,7 +212,7 @@ namespace IA {
         }
 
         for (double z = z_range.first; z <= z_range.second; z += 1) {
-            Segment &current = segments.back();
+            PointSet &current = segments.back();
 
             const auto p = p0 + delta * z;
 
@@ -268,8 +267,8 @@ namespace IA {
                 auto segments = scan_channel(theta, rho / rho_scale);
                 if (segments.empty()) continue;
 
-                auto shorter = [] (const Segment &a, const Segment &b) {
-                    return length_squared(a) < length_squared(b);
+                auto shorter = [] (const PointSet &a, const PointSet &b) {
+                    return a.length_squared() < b.length_squared();
                 };
 
                 auto longest = std::max_element(segments.begin(), segments.end(), shorter);
@@ -282,7 +281,7 @@ namespace IA {
 
                 segment = *longest;
 
-                if (length_squared(segment) >= seg_len_2) {
+                if (segment.length_squared() >= seg_len_2) {
                     queue.erase(q_end, queue.end());
                     return true;
                 }
