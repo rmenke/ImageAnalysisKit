@@ -43,17 +43,6 @@ namespace IA {
 
     using point_t = simd::double2;
 
-    class segment_t : public std::pair<point_t, point_t> {
-    public:
-        double length_squared() const {
-            return simd::distance_squared(first, second);
-        }
-
-        simd::double2 norm() const {
-            return simd::normalize((simd::double2) { second.y - first.y, first.x - second.x });
-        }
-    };
-
 #define PARAMS(OP,...)  OP(sensitivity,int) __VA_ARGS__ \
                         OP(maxGap,int) __VA_ARGS__ \
                         OP(minSegmentLength,int) __VA_ARGS__ \

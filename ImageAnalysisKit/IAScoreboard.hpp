@@ -46,7 +46,7 @@ namespace IA {
         bool vote(const double x, const double y, vImagePixelCount &theta, vImagePixelCount &rho);
         void unvote(const double x, const double y);
 
-        bool next_segment(segment_t &segment);
+        bool next_segment(Segment &segment);
 
     public:
         Scoreboard(const vImage_Buffer *image, const double threshold, const double seg_len_2, const double diagonal, const unsigned short max_gap, const unsigned short channel_radius);
@@ -59,7 +59,7 @@ namespace IA {
 
         struct iterator {
             using difference_type   = std::ptrdiff_t;
-            using value_type        = segment_t;
+            using value_type        = Segment;
             using pointer           = const value_type *;
             using reference         = const value_type &;
             using iterator_category = std::input_iterator_tag;

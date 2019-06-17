@@ -90,7 +90,7 @@ CFArrayRef _Nullable IACreateSegmentArray(const vImage_Buffer *buffer, CFDiction
 
         IA::Scoreboard scoreboard{buffer, param};
 
-        std::vector<IA::segment_t> segments;
+        std::vector<IA::Segment> segments;
         std::copy(scoreboard.begin(), scoreboard.end(), std::back_inserter(segments));
 
         segments.erase(IA::postprocess(segments.begin(), segments.end()), segments.end());

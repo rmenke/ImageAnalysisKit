@@ -243,7 +243,7 @@ namespace IA {
         return segments;
     }
 
-    bool Scoreboard::next_segment(segment_t &segment) {
+    bool Scoreboard::next_segment(Segment &segment) {
         auto const q_begin = queue.begin();
         auto q_end         = queue.end();
 

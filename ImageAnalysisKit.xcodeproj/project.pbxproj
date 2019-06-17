@@ -13,6 +13,7 @@
 		E132CC5822669D430021A732 /* ImageAnalysisKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E132CC4E22669D420021A732 /* ImageAnalysisKit.framework */; };
 		E132CC5F22669D430021A732 /* ImageAnalysisKit.h in Headers */ = {isa = PBXBuildFile; fileRef = E132CC5122669D420021A732 /* ImageAnalysisKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E132CC6D2266A97D0021A732 /* test-image-1.png in Resources */ = {isa = PBXBuildFile; fileRef = E132CC6C2266A97D0021A732 /* test-image-1.png */; };
+		E14F01C922B7C4AA009786CF /* IASegment.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E14F01C722B7C4AA009786CF /* IASegment.hpp */; };
 		E17995962267B7E100D379E9 /* test-image-2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E17995952267B7E100D379E9 /* test-image-2.jpg */; };
 		E18E15952287B75100952BE2 /* IAScoreboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E18E15932287B75100952BE2 /* IAScoreboard.cpp */; };
 		E18E15962287B75100952BE2 /* IAScoreboard.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E18E15942287B75100952BE2 /* IAScoreboard.hpp */; };
@@ -49,6 +50,7 @@
 		E132CC5722669D430021A732 /* ImageAnalysisKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ImageAnalysisKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E132CC5E22669D430021A732 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E132CC6C2266A97D0021A732 /* test-image-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "test-image-1.png"; sourceTree = "<group>"; };
+		E14F01C722B7C4AA009786CF /* IASegment.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IASegment.hpp; sourceTree = "<group>"; };
 		E17995952267B7E100D379E9 /* test-image-2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "test-image-2.jpg"; sourceTree = "<group>"; };
 		E18E15932287B75100952BE2 /* IAScoreboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = IAScoreboard.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E18E15942287B75100952BE2 /* IAScoreboard.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = IAScoreboard.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -112,6 +114,7 @@
 				E1EFC8C922696278005CFC6C /* IABufferAnalysis.cpp */,
 				E1D8DB912288AF54009B3F2C /* IABase.hpp */,
 				E18E15982287B90300952BE2 /* IAManagedBuffer.hpp */,
+				E14F01C722B7C4AA009786CF /* IASegment.hpp */,
 				E18E159C2287BC7100952BE2 /* IAPointSet.hpp */,
 				E18E15942287B75100952BE2 /* IAScoreboard.hpp */,
 				E18E15932287B75100952BE2 /* IAScoreboard.cpp */,
@@ -152,6 +155,7 @@
 				E1D8DB932288AF54009B3F2C /* IABase.hpp in Headers */,
 				E18E159A2287B90300952BE2 /* IAManagedBuffer.hpp in Headers */,
 				E1EFC8CF2269630E005CFC6C /* cf_util.hpp in Headers */,
+				E14F01C922B7C4AA009786CF /* IASegment.hpp in Headers */,
 				E196A465228D858900FFC88C /* IAPostprocess.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

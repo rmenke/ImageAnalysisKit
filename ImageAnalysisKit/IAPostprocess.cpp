@@ -12,7 +12,7 @@ constexpr double channel_width = 3.0;
 constexpr double channel_radius = (channel_width - 1) / 2.0;
 
 namespace IA {
-    bool fuse(segment_t &s, const segment_t &t) {
+    bool fuse(Segment &s, const Segment &t) {
         // Step 1: Verify that t is in the same channel as s.
 
         const auto v = s.second - s.first;
