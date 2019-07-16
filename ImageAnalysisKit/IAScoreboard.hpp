@@ -46,7 +46,7 @@ namespace IA {
         bool vote(const double x, const double y, vImagePixelCount &theta, vImagePixelCount &rho);
         void unvote(const double x, const double y);
 
-        bool next_segment(Segment &segment);
+        bool next_segment(segment_t &segment);
 
     public:
         Scoreboard(const vImage_Buffer *image, const double threshold, const double seg_len_2, const double diagonal, const unsigned short max_gap, const unsigned short channel_radius);
@@ -59,7 +59,7 @@ namespace IA {
 
         struct iterator {
             using difference_type   = std::ptrdiff_t;
-            using value_type        = Segment;
+            using value_type        = segment_t;
             using pointer           = const value_type *;
             using reference         = const value_type &;
             using iterator_category = std::input_iterator_tag;
@@ -79,45 +79,45 @@ namespace IA {
             iterator(Scoreboard *sb = nullptr) : sb(sb) {
                 load_next();
             }
-            
+
             iterator(const iterator &) = default;
             iterator(iterator &&) = default;
-            
+
             iterator &operator =(const iterator &) = default;
             iterator &operator =(iterator &&) = default;
-            
+
             reference operator *() const {
                 return current;
             }
-            
+
             pointer operator ->() const {
                 return &current;
             }
-            
+
             bool operator ==(const iterator &rhs) const {
                 return sb == rhs.sb;
             }
-            
+
             bool operator !=(const iterator &rhs) const {
                 return !operator ==(rhs);
             }
-            
+
             iterator &operator ++() {
                 load_next();
                 return *this;
             }
-            
+
             iterator operator ++(int) {
                 iterator copy; copy.current = current;
                 operator ++();
                 return copy;
             }
         };
-        
+
         iterator begin() {
             return iterator(this);
         }
-        
+
         iterator end() {
             return iterator();
         }

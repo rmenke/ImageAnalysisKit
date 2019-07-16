@@ -88,16 +88,16 @@ CFArrayRef _Nullable IACreateSegmentArray(const vImage_Buffer *buffer, CFDiction
 
         IA::Scoreboard scoreboard{buffer, param};
 
-        std::vector<IA::Segment> segments;
+        std::vector<IA::segment_t> segments;
         std::copy(scoreboard.begin(), scoreboard.end(), std::back_inserter(segments));
 
         segments.erase(IA::postprocess(segments.begin(), segments.end()), segments.end());
 
         for (const auto &segment : segments) {
-            auto x0 = cf::number(segment.first.x);
-            auto y0 = cf::number(segment.first.y);
-            auto x1 = cf::number(segment.second.x);
-            auto y1 = cf::number(segment.second.y);
+            auto x0 = cf::number(segment.lo.x);
+            auto y0 = cf::number(segment.lo.y);
+            auto x1 = cf::number(segment.hi.x);
+            auto y1 = cf::number(segment.hi.y);
 
             auto s = cf::array(x0, y0, x1, y1);
 
@@ -132,7 +132,7 @@ CFArrayRef _Nullable IACreateRegionArray(const vImage_Buffer *buffer, CFDictiona
 
         IA::Scoreboard scoreboard{buffer, param};
 
-        std::vector<IA::Segment> segments;
+        std::vector<IA::segment_t> segments;
         std::copy(scoreboard.begin(), scoreboard.end(), std::back_inserter(segments));
 
         auto end = IA::postprocess(segments.begin(), segments.end());

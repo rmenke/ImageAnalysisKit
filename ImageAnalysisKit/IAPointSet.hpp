@@ -11,12 +11,13 @@
 
 #include "IABase.hpp"
 #include "IAManagedBuffer.hpp"
-#include "IASegment.hpp"
 
 #include <vector>
 
 namespace IA {
-    class PointSet : public Segment {
+    class PointSet {
+        segment_t segment;
+
         const managed_buffer<status_t> &buffer;
         std::vector<std::pair<long, long>> points;
 
@@ -25,7 +26,7 @@ namespace IA {
     public:
         PointSet(const managed_buffer<status_t> &buffer) : buffer(buffer) { }
         PointSet(const PointSet &) = delete;
-        PointSet(PointSet &&r) : Segment(r), buffer(r.buffer), points(std::move(r.points)), valid(r.valid) {
+        PointSet(PointSet &&r) : segment(r.segment), buffer(r.buffer), points(std::move(r.points)), valid(r.valid) {
             r.valid = false;
         }
 
@@ -48,13 +49,21 @@ namespace IA {
         void extend(double x, double y) {
             if (!valid) {
                 valid = true;
-                this->first = vector2(x, y);
+                segment.lo = vector2(x, y);
             }
-            this->second = vector2(x, y);
+            segment.hi = vector2(x, y);
         }
 
         bool empty() const {
             return points.empty();
+        }
+
+        double length_squared() const {
+            return simd::distance_squared(segment.lo, segment.hi);
+        }
+
+        operator segment_t() const {
+            return segment;
         }
 
         decltype(points)::iterator begin() {
@@ -101,7 +110,7 @@ namespace IA {
                     ++begin;
                 }
             }
-            
+
             points.erase(end, points.end());
         }
     };

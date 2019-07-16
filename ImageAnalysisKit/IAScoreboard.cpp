@@ -184,7 +184,7 @@ namespace IA {
 
         return range;
     }
-    
+
     std::vector<PointSet> Scoreboard::scan_channel(vImagePixelCount theta, double rho) const {
         const simd::double2 norm  = trig[theta];
         const simd::double2 p0    = rho * trig[theta];
@@ -243,7 +243,7 @@ namespace IA {
         return segments;
     }
 
-    bool Scoreboard::next_segment(Segment &segment) {
+    bool Scoreboard::next_segment(segment_t &segment) {
         auto const q_begin = queue.begin();
         auto q_end         = queue.end();
 
@@ -279,9 +279,8 @@ namespace IA {
                     unvote(p.first, p.second);
                 }
 
-                segment = *longest;
-
-                if (segment.length_squared() >= seg_len_2) {
+                if (longest->length_squared() >= seg_len_2) {
+                    segment = *longest;
                     queue.erase(q_end, queue.end());
                     return true;
                 }

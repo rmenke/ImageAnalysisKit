@@ -254,11 +254,11 @@ static auto urbg = std::default_random_engine{std::random_device{}()};
 }
 
 - (void)testFindCorners1 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 10, 0},
-        IA::Segment{0, 0, 0, 10},
-        IA::Segment{0, 10, 10, 10},
-        IA::Segment{10, 10, 10, 0}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 10, 0},
+        IA::segment_t{0, 0, 0, 10},
+        IA::segment_t{0, 10, 10, 10},
+        IA::segment_t{10, 10, 10, 0}
     };
 
     using namespace std;
@@ -273,10 +273,10 @@ static auto urbg = std::default_random_engine{std::random_device{}()};
 }
 
 - (void)testFindCorners2 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 10, 0},
-        IA::Segment{0, 0, 0, 10},
-        IA::Segment{10, 10, 10, 0}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 10, 0},
+        IA::segment_t{0, 0, 0, 10},
+        IA::segment_t{10, 10, 10, 0}
     };
 
     using namespace std;
@@ -291,13 +291,13 @@ static auto urbg = std::default_random_engine{std::random_device{}()};
 }
 
 - (void)testFindCorners3 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 10, 0},
-        IA::Segment{10, 0, 10, 5},
-        IA::Segment{0, 0, 0, 10},
-        IA::Segment{0, 10, 5, 10},
-        IA::Segment{5, 5, 5, 10},
-        IA::Segment{5, 5, 10, 5}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 10, 0},
+        IA::segment_t{10, 0, 10, 5},
+        IA::segment_t{0, 0, 0, 10},
+        IA::segment_t{0, 10, 5, 10},
+        IA::segment_t{5, 5, 5, 10},
+        IA::segment_t{5, 5, 10, 5}
     };
 
     using namespace std;
@@ -324,11 +324,11 @@ public:
 };
 
 - (void)testFindPolylines1 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 9, 0},
-        IA::Segment{0, 0, 0, 9},
-        IA::Segment{0, 10, 9, 10},
-        IA::Segment{10, 0, 10, 9}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 9, 0},
+        IA::segment_t{0, 0, 0, 9},
+        IA::segment_t{0, 10, 9, 10},
+        IA::segment_t{10, 0, 10, 9}
     };
 
     using namespace std;
@@ -346,10 +346,10 @@ public:
 }
 
 - (void)testFindPolylines2 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 10, 0},
-        IA::Segment{0, 0, 0, 10},
-        IA::Segment{10, 10, 10, 0}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 10, 0},
+        IA::segment_t{0, 0, 0, 10},
+        IA::segment_t{10, 10, 10, 0}
     };
 
     using namespace std;
@@ -367,13 +367,13 @@ public:
 }
 
 - (void)testFindPolylines3 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 10, 0},
-        IA::Segment{10, 0, 10, 5},
-        IA::Segment{0, 0, 0, 10},
-        IA::Segment{0, 10, 5, 10},
-        IA::Segment{5, 5, 5, 10},
-        IA::Segment{5, 5, 10, 5}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 10, 0},
+        IA::segment_t{10, 0, 10, 5},
+        IA::segment_t{0, 0, 0, 10},
+        IA::segment_t{0, 10, 5, 10},
+        IA::segment_t{5, 5, 5, 10},
+        IA::segment_t{5, 5, 10, 5}
     };
 
     using namespace std;
@@ -391,15 +391,15 @@ public:
 }
 
 - (void)testFindPolylines4 {
-    IA::Segment segments[] = {
-        IA::Segment{0, 0, 10, 0},
-        IA::Segment{10, 0, 10, 5},
-        IA::Segment{0, 0, 0, 10},
-        IA::Segment{0, 10, 5, 10},
-        IA::Segment{5, 5, 5, 20},
-        IA::Segment{5, 5, 20, 5},
-        IA::Segment{5, 20, 21, 20},
-        IA::Segment{20, 5, 20, 21}
+    IA::segment_t segments[] = {
+        IA::segment_t{0, 0, 10, 0},
+        IA::segment_t{10, 0, 10, 5},
+        IA::segment_t{0, 0, 0, 10},
+        IA::segment_t{0, 10, 5, 10},
+        IA::segment_t{5, 5, 5, 20},
+        IA::segment_t{5, 5, 20, 5},
+        IA::segment_t{5, 20, 21, 20},
+        IA::segment_t{20, 5, 20, 21}
     };
 
     using namespace std;

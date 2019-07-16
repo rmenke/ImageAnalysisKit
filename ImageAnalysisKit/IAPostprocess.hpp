@@ -10,10 +10,9 @@
 #define IAPostprocess_hpp
 
 #include "IABase.hpp"
-#include "IASegment.hpp"
 
 namespace IA {
-    extern bool fuse(Segment &s, const Segment &t);
+    extern bool fuse(segment_t &s, const segment_t &t);
 
     template <class Iterator>
     Iterator postprocess(Iterator _first, Iterator _last) {

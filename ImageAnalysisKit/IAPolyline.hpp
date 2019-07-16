@@ -9,7 +9,7 @@
 #ifndef IAPolyline_hpp
 #define IAPolyline_hpp
 
-#include "IASegment.hpp"
+#include "IABase.hpp"
 
 #include <deque>
 #include <vector>
@@ -23,14 +23,9 @@ namespace IA {
      *
      * @return The intersection point of the lines coinciding with the segments.  If the segments are parallel, this solution will contain Infinity.
      */
-    static inline point_t intersection(const Segment &s1, const Segment &s2) {
-        auto a = s1.first;
-        auto b = s1.second;
-        auto c = s2.first;
-        auto d = s2.second;
-
-        const auto t = (b - a);
-        const auto u = (d - c);
+    static inline point_t intersection(const segment_t &s1, const segment_t &s2) {
+        const auto t = (s1.hi - s1.lo);
+        const auto u = (s2.hi - s2.lo);
 
         const auto v = t.yx * u;
 
@@ -38,27 +33,34 @@ namespace IA {
             return {INFINITY, INFINITY};
         }
 
-        auto p = t.yx * a;
+        auto p = t.yx * s1.lo;
         p = (p.y - p.x) * u;
 
-        auto q = u.yx * c;
+        auto q = u.yx * s2.lo;
         q = (q.y - q.x) * t;
 
         return (p - q) / (v.y - v.x);
     }
 
-    static inline point_t farthest(point_t p, const Segment &s) {
-        const auto d1 = simd::distance_squared(p, s.first);
-        const auto d2 = simd::distance_squared(p, s.second);
-        return d1 > d2 ? s.first : s.second;
-    }
-
     class Corner {
+        /*!
+         * Returns the point on the segment that is farthest from the given point.
+         *
+         * @param p The point.
+         * @param s The segment.
+         * @return The endpoint of @c s that is farthest from @c p.
+         */
+        static point_t farthest(point_t p, segment_t s) {
+            const auto d1 = simd::distance_squared(p, s.lo);
+            const auto d2 = simd::distance_squared(p, s.hi);
+            return d1 > d2 ? s.lo : s.hi;
+        }
+
     public:
-        const Segment *s1, *s2;
+        const segment_t *s1, *s2;
         point_t a, b, c;
 
-        Corner(const Segment *s1, point_t p, const Segment *s2) : s1(s1), s2(s2), a(farthest(p, *s1)), b(p), c(farthest(p, *s2)) { }
+        Corner(const segment_t *s1, point_t p, const segment_t *s2) : s1(s1), s2(s2), a(farthest(p, *s1)), b(p), c(farthest(p, *s2)) { }
 
         bool operator ==(const Corner &rhs) const {
             return s1 == rhs.s1 && s2 == rhs.s2;
@@ -94,28 +96,28 @@ namespace IA {
 
                 point_t a, b;
 
-                double d1 = simd::distance_squared(p, s1.first);
-                double d2 = simd::distance_squared(p, s1.second);
+                double d1 = simd::distance_squared(p, s1.lo);
+                double d2 = simd::distance_squared(p, s1.hi);
 
                 if (d1 < d2) {
                     if (d1 > max_gap_squared) continue;
-                    a = s1.second;
+                    a = s1.hi;
                 }
                 else {
                     if (d2 > max_gap_squared) continue;
-                    a = s1.first;
+                    a = s1.lo;
                 }
 
-                d1 = simd::distance_squared(p, s2.first);
-                d2 = simd::distance_squared(p, s2.second);
+                d1 = simd::distance_squared(p, s2.lo);
+                d2 = simd::distance_squared(p, s2.hi);
 
                 if (d1 < d2) {
                     if (d1 > max_gap_squared) continue;
-                    b = s2.second;
+                    b = s2.hi;
                 }
                 else {
                     if (d2 > max_gap_squared) continue;
-                    b = s2.first;
+                    b = s2.lo;
                 }
 
                 // Determine the orientation of the corner by examining the cross product of the two vectors relative to their intersection.  If the sine is not positive, reverse the ordering.

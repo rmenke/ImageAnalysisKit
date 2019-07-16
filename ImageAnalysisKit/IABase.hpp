@@ -41,7 +41,8 @@ namespace IA {
         marked_voted   = 0xff00ffff
     };
 
-    using point_t = simd::double2;
+    using point_t   = simd::double2;
+    using segment_t = simd::double4;
 
 #define PARAMS(OP,...)  OP(sensitivity,int) __VA_ARGS__ \
                         OP(maxGap,int) __VA_ARGS__ \
