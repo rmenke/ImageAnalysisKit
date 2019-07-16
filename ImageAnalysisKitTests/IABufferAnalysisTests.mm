@@ -11,10 +11,16 @@
 #import <simd/simd.h>
 
 #import "IABufferAnalysis.h"
+#import "IAPolyline.hpp"
 #import "IAScoreboard.hpp"
 
 #include <array>
+#include <iostream>
 #include <vector>
+#include <random>
+#include <unordered_set>
+
+static auto urbg = std::default_random_engine{std::random_device{}()};
 
 @interface IABufferAnalysisTests : XCTestCase
 
@@ -245,6 +251,171 @@
     CGImageDestinationAddImage(dest.get(), image.get(), nullptr);
     CGImageDestinationFinalize(dest.get());
 #endif
+}
+
+- (void)testFindCorners1 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 10, 0},
+        IA::Segment{0, 0, 0, 10},
+        IA::Segment{0, 10, 10, 10},
+        IA::Segment{10, 10, 10, 0}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Corner> corners;
+
+    IA::find_corners(begin(segments), end(segments), back_inserter(corners), 1.0);
+
+    XCTAssertEqual(corners.size(), 4);
+}
+
+- (void)testFindCorners2 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 10, 0},
+        IA::Segment{0, 0, 0, 10},
+        IA::Segment{10, 10, 10, 0}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Corner> corners;
+
+    IA::find_corners(begin(segments), end(segments), back_inserter(corners), 1.0);
+
+    XCTAssertEqual(corners.size(), 2);
+}
+
+- (void)testFindCorners3 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 10, 0},
+        IA::Segment{10, 0, 10, 5},
+        IA::Segment{0, 0, 0, 10},
+        IA::Segment{0, 10, 5, 10},
+        IA::Segment{5, 5, 5, 10},
+        IA::Segment{5, 5, 10, 5}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Corner> corners;
+
+    IA::find_corners(begin(segments), end(segments), back_inserter(corners), 1.0);
+
+    XCTAssertEqual(corners.size(), 6);
+}
+
+class eq_point {
+    const IA::point_t p;
+
+public:
+    eq_point(IA::point_t p) : p(p) { }
+    eq_point(double x, double y) : eq_point(IA::point_t{x, y}) { }
+
+    bool operator ()(IA::point_t q) const {
+        return simd::all(p == q);
+    }
+};
+
+- (void)testFindPolylines1 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 9, 0},
+        IA::Segment{0, 0, 0, 9},
+        IA::Segment{0, 10, 9, 10},
+        IA::Segment{10, 0, 10, 9}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Region> regions;
+
+    IA::find_regions(begin(segments), end(segments), back_inserter(regions), 1.0);
+
+    XCTAssertEqual(regions.size(), 1);
+    if (regions.size()) {
+        XCTAssert(simd::all(regions.front() == simd::double4{0,0,10,10}));
+    }
+}
+
+- (void)testFindPolylines2 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 10, 0},
+        IA::Segment{0, 0, 0, 10},
+        IA::Segment{10, 10, 10, 0}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Region> regions;
+
+    IA::find_regions(begin(segments), end(segments), back_inserter(regions), 1.0);
+
+    XCTAssertEqual(regions.size(), 1);
+    if (regions.size()) {
+        XCTAssert(simd::all(regions.front() == simd::double4{0,0,10,10}));
+    }
+}
+
+- (void)testFindPolylines3 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 10, 0},
+        IA::Segment{10, 0, 10, 5},
+        IA::Segment{0, 0, 0, 10},
+        IA::Segment{0, 10, 5, 10},
+        IA::Segment{5, 5, 5, 10},
+        IA::Segment{5, 5, 10, 5}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Region> regions;
+
+    IA::find_regions(begin(segments), end(segments), back_inserter(regions), 1.0);
+
+    XCTAssertEqual(regions.size(), 1);
+    if (regions.size()) {
+        XCTAssert(simd::all(regions.front() == simd::double4{0,0,10,10}));
+    }
+}
+
+- (void)testFindPolylines4 {
+    IA::Segment segments[] = {
+        IA::Segment{0, 0, 10, 0},
+        IA::Segment{10, 0, 10, 5},
+        IA::Segment{0, 0, 0, 10},
+        IA::Segment{0, 10, 5, 10},
+        IA::Segment{5, 5, 5, 20},
+        IA::Segment{5, 5, 20, 5},
+        IA::Segment{5, 20, 21, 20},
+        IA::Segment{20, 5, 20, 21}
+    };
+
+    using namespace std;
+
+    shuffle(begin(segments), end(segments), urbg);
+
+    vector<IA::Region> regions;
+
+    IA::find_regions(begin(segments), end(segments), back_inserter(regions), 1.0);
+    IA::sort_regions(regions.begin(), regions.end());
+
+    XCTAssertEqual(regions.size(), 2);
+    if (regions.empty()) return;
+
+    XCTAssert(simd::all(regions[0] == simd::double4{0, 0, 10, 10}));
+    XCTAssert(simd::all(regions[1] == simd::double4{5, 5, 15, 15}));
 }
 
 @end

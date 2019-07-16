@@ -356,45 +356,56 @@
         CGImageRef image  = CGImageSourceCreateImageAtIndex(source, 0, NULL);
         CFRelease(source);
 
-        IABuffer *buffer = [[IABuffer alloc] initWithImage:image error:&error];
+        IABuffer *imageBuffer = [[IABuffer alloc] initWithImage:image error:&error];
 
         CGImageRelease(image);
 
-        buffer = [buffer extractBorderMaskAndReturnError:&error];
+        IABuffer *buffer = [imageBuffer extractBorderMaskAndReturnError:&error];
         buffer = [[buffer erodeWithKernelSize:NSMakeSize(3, 3) error:&error] dilateWithKernelSize:NSMakeSize(3, 3) error:&error];
         buffer = [[buffer dilateWithKernelSize:NSMakeSize(3, 3) error:&error] subtractBuffer:buffer error:&error];
         XCTAssertNotNil(buffer, @"error - %@", error);
 
-        NSArray<NSValue *> *result = [buffer extractSegmentsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
-        XCTAssertNotNil(result, @"error - %@", error);
+        NSArray<NSValue *> *segments = [buffer extractSegmentsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
+        XCTAssertNotNil(segments, @"error - %@", error);
+        NSArray<NSValue *> *regions = [buffer extractRegionsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
+        XCTAssertNotNil(regions, @"error - %@", error);
 
         switch (idx) {
             case 0:
-                XCTAssertEqual(result.count, 12, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqual(segments.count, 12, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqual(regions.count, 2, @"Expected count for %@", url.lastPathComponent);
                 break;
 
             case 1:
-                XCTAssertEqual(result.count, 16, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqual(segments.count, 16, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqual(regions.count, 4, @"Expected count for %@", url.lastPathComponent);
                 break;
 
             case 2:
-                XCTAssertEqual(result.count, 20, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqualWithAccuracy(segments.count, 20, 1, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqual(regions.count, 5, @"Expected count for %@", url.lastPathComponent);
+                break;
+
+            case 3:
+                XCTAssertEqualWithAccuracy(segments.count, 93, 5, @"Expected count for %@", url.lastPathComponent);
+                XCTAssertEqualWithAccuracy(regions.count, 13, 1, @"Expected count for %@", url.lastPathComponent);
+                break;
 
             default:
                 NSLog(@"Unknown count expected for %@", url.lastPathComponent);
         }
 
 #ifdef TEST_IMAGE_DIR
-        image = [buffer newCGImageAndReturnError:&error];
+        image = [imageBuffer newCGImageAndReturnError:&error];
 
         CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
         CGContextRef context = CGBitmapContextCreate(NULL, CGImageGetWidth(image), CGImageGetHeight(image), 8, 0, colorSpace, kCGBitmapByteOrder32Big | kCGImageAlphaPremultipliedLast);
 
-        CGContextSetGrayFillColor(context, 0.00, 1.00);
+        CGContextSetGrayFillColor(context, 1.00, 1.00);
         CGContextAddRect(context, CGRectMake(0, 0, CGBitmapContextGetWidth(context), CGBitmapContextGetHeight(context)));
         CGContextFillPath(context);
 
-        CGContextSetAlpha(context, 0.25);
+        CGContextSetAlpha(context, 0.50);
         CGContextDrawImage(context, CGRectMake(0, 0, CGBitmapContextGetWidth(context), CGBitmapContextGetHeight(context)), image);
         CGContextSetAlpha(context, 1.00);
         CGImageRelease(image);
@@ -402,7 +413,42 @@
         CGContextTranslateCTM(context, 0.00, CGBitmapContextGetHeight(context));
         CGContextScaleCTM(context, 1.00, -1.00);
 
-        for (NSValue *value in result) {
+        CGMutablePathRef path = CGPathCreateMutable();
+
+        for (NSValue *value in regions) {
+            CGRect region = NSRectToCGRect(value.rectValue);
+            CGPathAddRect(path, NULL, region);
+        }
+
+        CGContextAddPath(context, path);
+        CGContextSetRGBFillColor(context, 0.00, 0.00, 1.00, 0.50);
+        CGContextFillPath(context);
+
+        CGContextAddPath(context, path);
+        CGContextSetRGBStrokeColor(context, 0.00, 0.00, 1.00, 1.00);
+        CGContextStrokePath(context);
+
+        CGPathRelease(path);
+
+        id font = CFBridgingRelease(CTFontCreateWithName(CFSTR("Monaco"), 24.0, (CGAffineTransform[]){CGAffineTransformMakeScale(1, -1)}));
+
+        NSUInteger index = 0;
+
+        for (NSValue *value in regions) {
+            CGRect region = NSRectToCGRect(value.rectValue);
+
+            NSAttributedString *aString = [[NSAttributedString alloc] initWithString:@(++index).stringValue attributes:@{(NSString *)kCTFontAttributeName:font, (NSString *)kCTForegroundColorAttributeName:(id)([NSColor greenColor].CGColor)}];
+            CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)aString);
+            CGRect bounds = CTLineGetImageBounds(line, context);
+
+            CGContextSetTextPosition(context, CGRectGetMinX(region) + 5.0, CGRectGetMinY(region) + CGRectGetHeight(bounds) + 5.0);
+            CTLineDraw(line, context);
+            CFRelease(line);
+        }
+
+        CGContextFillPath(context);
+
+        for (NSValue *value in segments) {
             CGPoint points[2];
 
             [value getValue:points];

@@ -490,6 +490,28 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     return result;
 }
 
+- (NSArray<NSValue *> *)extractRegionsWithParameters:(NSDictionary<NSString *,id> *)parameters error:(NSError **)error {
+    CFErrorRef cfError;
+    NSArray<NSArray<NSNumber *> *> *regions = CFBridgingRelease(IACreateRegionArray(&buffer, (__bridge CFDictionaryRef)(parameters), error ? &cfError : NULL));
+    if (!regions) {
+        if (error) *error = CFBridgingRelease(cfError);
+        return nil;
+    }
+
+    NSMutableArray<NSValue *> *result = [NSMutableArray arrayWithCapacity:regions.count];
+
+    for (NSArray<NSNumber *> *region in regions) {
+        double x = region[0].doubleValue;
+        double y = region[1].doubleValue;
+        double w = region[2].doubleValue;
+        double h = region[3].doubleValue;
+
+        [result addObject:[NSValue valueWithRect:NSMakeRect(x, y, w, h)]];
+    }
+
+    return result;
+}
+
 - (CGImageRef)newCGImageAndReturnError:(NSError **)error {
     vImage_Error code = kvImageNoError;
 

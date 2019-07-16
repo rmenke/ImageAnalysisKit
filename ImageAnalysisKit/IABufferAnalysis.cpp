@@ -8,14 +8,12 @@
 
 #include "IABufferAnalysis.h"
 #include "IAScoreboard.hpp"
+#include "IAPolyline.hpp"
 #include "IAPostprocess.hpp"
 
 #include "cf_util.hpp"
 
 #include <simd/simd.h>
-
-#include <CoreMedia/CoreMedia.h>
-#include <CoreVideo/CoreVideo.h>
 
 #include <array>
 #include <iterator>
@@ -124,4 +122,54 @@ CFArrayRef _Nullable IACreateSegmentArray(const vImage_Buffer *buffer, CFDiction
         SET_ERROR(cf::error());
         return nullptr;
     }
+}
+
+CFArrayRef _Nullable IACreateRegionArray(const vImage_Buffer *buffer, CFDictionaryRef parameters, CFErrorRef *error) noexcept {
+    try {
+        const IA::UserParameters param { parameters };
+
+        auto result = cf::make_managed(CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks));
+
+        IA::Scoreboard scoreboard{buffer, param};
+
+        std::vector<IA::Segment> segments;
+        std::copy(scoreboard.begin(), scoreboard.end(), std::back_inserter(segments));
+
+        auto end = IA::postprocess(segments.begin(), segments.end());
+
+        std::vector<IA::Region> regions;
+
+        IA::find_regions(segments.begin(), end, std::back_inserter(regions), param.maxGap);
+        IA::sort_regions(regions.begin(), regions.end());
+
+        for (auto region : regions) {
+            auto x = cf::number(region[0]);
+            auto y = cf::number(region[1]);
+            auto w = cf::number(region[2]);
+            auto h = cf::number(region[3]);
+
+            auto r = cf::array(x, y, w, h);
+
+            CFArrayAppendValue(result.get(), r.get());
+        }
+
+        return result.release();
+    }
+    catch (const IA::VImageException &ex) {
+        SET_ERROR(CFErrorCreate(kCFAllocatorDefault, kCFImageAnalysisKitErrorDomain, ex.code(), NULL));
+        return nullptr;
+    }
+    catch (const std::system_error &ex) {
+        SET_ERROR(cf::system_error(ex));
+        return nullptr;
+    }
+    catch (const std::exception &ex) {
+        SET_ERROR(cf::error(ex));
+        return nullptr;
+    }
+    catch (...) {
+        SET_ERROR(cf::error());
+        return nullptr;
+    }
+
 }

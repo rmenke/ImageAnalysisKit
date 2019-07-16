@@ -10,6 +10,7 @@
 		E111F80A226BA93700A72CCD /* IABuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E111F808226BA93700A72CCD /* IABuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E111F80B226BA93700A72CCD /* IABuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = E111F809226BA93700A72CCD /* IABuffer.m */; };
 		E111F80D226BB57B00A72CCD /* IABufferTests.m in Sources */ = {isa = PBXBuildFile; fileRef = E111F80C226BB57B00A72CCD /* IABufferTests.m */; };
+		E126964D22BF6CC90068A835 /* IAPolyline.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E126964B22BF6CC90068A835 /* IAPolyline.hpp */; };
 		E132CC5822669D430021A732 /* ImageAnalysisKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E132CC4E22669D420021A732 /* ImageAnalysisKit.framework */; };
 		E132CC5F22669D430021A732 /* ImageAnalysisKit.h in Headers */ = {isa = PBXBuildFile; fileRef = E132CC5122669D420021A732 /* ImageAnalysisKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E132CC6D2266A97D0021A732 /* test-image-1.png in Resources */ = {isa = PBXBuildFile; fileRef = E132CC6C2266A97D0021A732 /* test-image-1.png */; };
@@ -44,6 +45,7 @@
 		E111F808226BA93700A72CCD /* IABuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IABuffer.h; sourceTree = "<group>"; };
 		E111F809226BA93700A72CCD /* IABuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IABuffer.m; sourceTree = "<group>"; };
 		E111F80C226BB57B00A72CCD /* IABufferTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IABufferTests.m; sourceTree = "<group>"; };
+		E126964B22BF6CC90068A835 /* IAPolyline.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IAPolyline.hpp; sourceTree = "<group>"; };
 		E132CC4E22669D420021A732 /* ImageAnalysisKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ImageAnalysisKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E132CC5122669D420021A732 /* ImageAnalysisKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageAnalysisKit.h; sourceTree = "<group>"; };
 		E132CC5222669D420021A732 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 				E18E15982287B90300952BE2 /* IAManagedBuffer.hpp */,
 				E14F01C722B7C4AA009786CF /* IASegment.hpp */,
 				E18E159C2287BC7100952BE2 /* IAPointSet.hpp */,
+				E126964B22BF6CC90068A835 /* IAPolyline.hpp */,
 				E18E15942287B75100952BE2 /* IAScoreboard.hpp */,
 				E18E15932287B75100952BE2 /* IAScoreboard.cpp */,
 				E196A463228D858900FFC88C /* IAPostprocess.hpp */,
@@ -157,6 +160,7 @@
 				E1EFC8CF2269630E005CFC6C /* cf_util.hpp in Headers */,
 				E14F01C922B7C4AA009786CF /* IASegment.hpp in Headers */,
 				E196A465228D858900FFC88C /* IAPostprocess.hpp in Headers */,
+				E126964D22BF6CC90068A835 /* IAPolyline.hpp in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
