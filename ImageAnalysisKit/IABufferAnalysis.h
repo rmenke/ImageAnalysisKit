@@ -36,7 +36,7 @@ CFArrayRef IACopyParameterNames() _NOEXCEPT;
  * @abstract Use PPHT to find line segments in an image.
  * @discussion The image is assumed to be in Planar8 format.
  * @param buffer The buffer to analyze.
- * @param parameters A @c CFDictionary of parameters. The keys should be @c CFStringRef objects and the values should be @c CFTypeRef objects. The key names returned by @link IACopyParameterNames() @endlink must be present or the function will fail.
+ * @param parameters A @c CFDictionary of parameters. The keys should be @c CFStringRef objects and the values should be @c CFTypeRef objects. The key names returned by IACopyParameterNames() must be present or the function will fail.
  * @param error If not @c NULL and an error occurs, will be filled with the error information.
  * @return A CFArrayRef of CFArrayRefs of four CFNumberRefs.
  */
@@ -46,7 +46,7 @@ CFArrayRef _Nullable IACreateSegmentArray(const vImage_Buffer *buffer, CFDiction
  * @abstract Use PPHT to find convex regions in an image.
  * @discussion The image is assumed to be in Planar8 format.
  * @param buffer The buffer to analyze.
- * @param parameters A @c CFDictionary of parameters. The keys should be @c CFStringRef objects and the values should be @c CFTypeRef objects. The key names returned by @link IACopyParameterNames() @endlink must be present or the function will fail.
+ * @param parameters A @c CFDictionary of parameters. The keys should be @c CFStringRef objects and the values should be @c CFTypeRef objects. The key names returned by IACopyParameterNames() must be present or the function will fail.
  * @param error If not @c NULL and an error occurs, will be filled with the error information.
  * @return A CFArrayRef of CFArrayRefs of four CFNumberRefs: x, y, width, height.
  */

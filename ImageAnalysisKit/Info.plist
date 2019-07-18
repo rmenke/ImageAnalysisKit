@@ -15,9 +15,9 @@
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.13</string>
+	<string>0.1.14</string>
 	<key>CFBundleVersion</key>
-	<string>1229</string>
+	<string>1231</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2019 Rob Menke. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
