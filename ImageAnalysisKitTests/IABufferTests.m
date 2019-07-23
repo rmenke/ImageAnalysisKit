@@ -78,9 +78,16 @@
     IABuffer *buffer;
 
     XCTAssertNoError(buffer = [[IABuffer alloc] initWithImage:(CGImageRef)image error:&error]);
-
-    XCTAssertEqual(buffer.width, 320);
+    XCTAssertEqual(buffer.width,  320);
     XCTAssertEqual(buffer.height, 240);
+}
+
+- (void)testInitWithURL {
+    IABuffer *buffer;
+
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithContentsOfURL:_imageURLs[1] error:&error]);
+    XCTAssertEqual(buffer.width,  640);
+    XCTAssertEqual(buffer.height, 640);
 }
 
 - (void)testExtractAlpha {

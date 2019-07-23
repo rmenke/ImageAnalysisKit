@@ -165,6 +165,26 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     return self;
 }
 
+- (instancetype)initWithContentsOfURL:(NSURL *)url error:(NSError **)error {
+    NSData *data = [NSData dataWithContentsOfURL:url options:NSDataReadingMappedIfSafe error:error];
+    if (!data) return nil;
+
+    CGImageSourceRef source = CGImageSourceCreateWithData((CFDataRef)data, NULL);
+    if (!source) {
+        if (error) *error = [NSError errorWithDomain:NSPOSIXErrorDomain code:kPOSIXErrorEFTYPE userInfo:nil];
+        return nil;
+    }
+
+    CGImageRef image = CGImageSourceCreateImageAtIndex(source, 0, NULL);
+    CFRelease(source);
+
+    self = [self initWithImage:image error:error];
+
+    CGImageRelease(image);
+
+    return self;
+}
+
 - (instancetype)initWithPlanes:(NSArray<IABuffer *> *)planes error:(NSError **)error {
     NSParameterAssert(planes.count == 4);
 

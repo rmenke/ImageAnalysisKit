@@ -25,7 +25,10 @@ FOUNDATION_EXPORT NSString * const ImageAnalysisKitErrorDomain;
                            bitsPerPixel:(NSUInteger)bitsPerPixel
                              colorSpace:(nullable NSColorSpace *)colorSpace
                                   error:(NSError **)error NS_DESIGNATED_INITIALIZER;
+
 - (nullable instancetype)initWithImage:(CGImageRef)image error:(NSError **)error NS_DESIGNATED_INITIALIZER;
+
+- (nullable instancetype)initWithContentsOfURL:(NSURL *)url error:(NSError **)error;
 
 - (nullable instancetype)initWithPlanes:(NSArray<IABuffer *> *)planes error:(NSError **)error;
 
