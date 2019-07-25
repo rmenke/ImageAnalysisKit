@@ -25,6 +25,36 @@
 
 const CFStringRef kCFImageAnalysisKitErrorDomain = CFSTR("ImageAnalysisKitErrorDomain");
 
+bool IAAddAlphaBorderToBuffer(const vImage_Buffer *buffer, CGRect ROI, CFErrorRef *error) {
+    const vImagePixelCount minX = CGRectGetMinX(ROI);
+    const vImagePixelCount minY = CGRectGetMinY(ROI);
+    const vImagePixelCount maxX = CGRectGetMaxX(ROI);
+    const vImagePixelCount maxY = CGRectGetMaxY(ROI);
+
+    if (maxX > buffer->width || maxY > buffer->height) {
+        if (error) *error = CFErrorCreate(kCFAllocatorDefault, kCFImageAnalysisKitErrorDomain, kvImageRoiLargerThanInputBuffer, NULL);
+        return false;
+    }
+
+    for (vImagePixelCount y = 0; y < minY; ++y) {
+        auto row = reinterpret_cast<simd::float4 *>(static_cast<uint8_t *>(buffer->data) + (buffer->rowBytes * y));
+        for (vImagePixelCount x = 0; x < buffer->width; ++x) row[x].w = 0.0f;
+    }
+
+    for (vImagePixelCount y = maxY; y < buffer->height; ++y) {
+        auto row = reinterpret_cast<simd::float4 *>(static_cast<uint8_t *>(buffer->data) + (buffer->rowBytes * y));
+        for (vImagePixelCount x = 0; x < buffer->width; ++x) row[x].w = 0.0f;
+    }
+
+    for (vImagePixelCount y = minY; y < maxY; ++y) {
+        auto row = reinterpret_cast<simd::float4 *>(static_cast<uint8_t *>(buffer->data) + (buffer->rowBytes * y));
+        for (vImagePixelCount x = 0; x < minX; ++x) row[x].w = 0.0f;
+        for (vImagePixelCount x = maxX; x < buffer->width; ++x) row[x].w = 0.0f;
+    }
+
+    return true;
+}
+
 void IAAddAlphaToBuffer(const vImage_Buffer *buffer, vImagePixelCount x, vImagePixelCount y, float fuzziness) noexcept {
     std::queue<std::pair<vImagePixelCount, vImagePixelCount>> queue;
 

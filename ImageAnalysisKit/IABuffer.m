@@ -390,11 +390,11 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     return result;
 }
 
-- (nullable IABuffer *)extractBorderMaskAndReturnError:(NSError **)error {
-    return [self extractBorderMaskWithFuzziness:13.7f error:error];
+- (nullable IABuffer *)extractBorderMaskWithROI:(NSRect)ROI error:(NSError * _Nullable __autoreleasing *)error {
+    return [self extractBorderMaskWithFuzziness:13.7f ROI:ROI error:error];
 }
 
-- (nullable IABuffer *)extractBorderMaskWithFuzziness:(float)fuzziness error:(NSError * _Nullable __autoreleasing *)error {
+- (nullable IABuffer *)extractBorderMaskWithFuzziness:(float)fuzziness ROI:(NSRect)ROI error:(NSError * _Nullable __autoreleasing *)error {
     CGFloat whitePoint[] = { 0.95047, 1.0, 1.08883 };
     CGFloat blackPoint[] = { 0, 0, 0 };
     CGFloat range[] = { -127, 127, -127, 127 };
@@ -424,10 +424,21 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
         return nil;
     }
 
-    IAAddAlphaToBuffer(&(labBuffer->buffer), 0, 0, fuzziness);
-    IAAddAlphaToBuffer(&(labBuffer->buffer), buffer.width - 1, 0, fuzziness);
-    IAAddAlphaToBuffer(&(labBuffer->buffer), 0, buffer.height - 1, fuzziness);
-    IAAddAlphaToBuffer(&(labBuffer->buffer), buffer.width - 1, buffer.height - 1, fuzziness);
+    CFErrorRef cferror = NULL;
+    if (!IAAddAlphaBorderToBuffer(&(labBuffer->buffer), ROI, &cferror)) {
+        if (error) *error = CFBridgingRelease(cferror);
+        return nil;
+    }
+
+    vImagePixelCount minX = CGRectGetMinX(ROI);
+    vImagePixelCount minY = CGRectGetMinY(ROI);
+    vImagePixelCount maxX = CGRectGetMaxX(ROI) - 1;
+    vImagePixelCount maxY = CGRectGetMaxY(ROI) - 1;
+
+    IAAddAlphaToBuffer(&(labBuffer->buffer), minX, minY, fuzziness);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), maxX, minY, fuzziness);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), minX, maxY, fuzziness);
+    IAAddAlphaToBuffer(&(labBuffer->buffer), maxX, maxY, fuzziness);
 
     IABuffer *alphaBuffer = [labBuffer extractChannel:3 error:error];
     if (!alphaBuffer) return nil;

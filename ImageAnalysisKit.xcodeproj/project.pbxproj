@@ -23,6 +23,7 @@
 		E196A465228D858900FFC88C /* IAPostprocess.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E196A463228D858900FFC88C /* IAPostprocess.hpp */; };
 		E1D7B7D4227F460700D7BF60 /* IABufferAnalysisTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = E1D7B7D3227F460700D7BF60 /* IABufferAnalysisTests.mm */; };
 		E1D8DB932288AF54009B3F2C /* IABase.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E1D8DB912288AF54009B3F2C /* IABase.hpp */; };
+		E1E0F43622EA685D006C54F0 /* test-image-5.jpg in Resources */ = {isa = PBXBuildFile; fileRef = E1E0F43522EA685D006C54F0 /* test-image-5.jpg */; };
 		E1EFC8CB22696278005CFC6C /* IABufferAnalysis.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1EFC8C922696278005CFC6C /* IABufferAnalysis.cpp */; };
 		E1EFC8CC22696278005CFC6C /* IABufferAnalysis.h in Headers */ = {isa = PBXBuildFile; fileRef = E1EFC8CA22696278005CFC6C /* IABufferAnalysis.h */; };
 		E1EFC8CF2269630E005CFC6C /* cf_util.hpp in Headers */ = {isa = PBXBuildFile; fileRef = E1EFC8CE2269630E005CFC6C /* cf_util.hpp */; };
@@ -60,6 +61,7 @@
 		E196A463228D858900FFC88C /* IAPostprocess.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IAPostprocess.hpp; sourceTree = "<group>"; };
 		E1D7B7D3227F460700D7BF60 /* IABufferAnalysisTests.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = IABufferAnalysisTests.mm; sourceTree = "<group>"; };
 		E1D8DB912288AF54009B3F2C /* IABase.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = IABase.hpp; sourceTree = "<group>"; };
+		E1E0F43522EA685D006C54F0 /* test-image-5.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "test-image-5.jpg"; sourceTree = "<group>"; };
 		E1EFC8C922696278005CFC6C /* IABufferAnalysis.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IABufferAnalysis.cpp; sourceTree = "<group>"; };
 		E1EFC8CA22696278005CFC6C /* IABufferAnalysis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IABufferAnalysis.h; sourceTree = "<group>"; };
 		E1EFC8CE2269630E005CFC6C /* cf_util.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = cf_util.hpp; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 				E17995952267B7E100D379E9 /* test-image-2.jpg */,
 				E1F3DCCA2290D6FE0067DDB2 /* test-image-3.png */,
 				E1F3DCCC2290DB110067DDB2 /* test-image-4.jpg */,
+				E1E0F43522EA685D006C54F0 /* test-image-5.jpg */,
 				E132CC5E22669D430021A732 /* Info.plist */,
 			);
 			path = ImageAnalysisKitTests;
@@ -250,10 +253,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1F3DCCD2290DB110067DDB2 /* test-image-4.jpg in Resources */,
-				E1F3DCCB2290D6FE0067DDB2 /* test-image-3.png in Resources */,
-				E17995962267B7E100D379E9 /* test-image-2.jpg in Resources */,
 				E132CC6D2266A97D0021A732 /* test-image-1.png in Resources */,
+				E17995962267B7E100D379E9 /* test-image-2.jpg in Resources */,
+				E1F3DCCB2290D6FE0067DDB2 /* test-image-3.png in Resources */,
+				E1F3DCCD2290DB110067DDB2 /* test-image-4.jpg in Resources */,
+				E1E0F43622EA685D006C54F0 /* test-image-5.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

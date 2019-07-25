@@ -128,7 +128,7 @@
         }
     }
 
-    XCTAssertNoError(buffer = [buffer extractBorderMaskAndReturnError:&error]);
+    XCTAssertNoError(buffer = [buffer extractBorderMaskWithROI:NSMakeRect(0, 0, buffer.width, buffer.height) error:&error]);
 
     for (NSUInteger y = 0; y < 16; ++y) {
         uint8_t *row = [buffer getRow:y];
@@ -141,6 +141,56 @@
             }
         }
     }
+}
+
+- (void)testExtractBorderMaskCropping {
+    CGContextRef context = CGBitmapContextCreate(NULL, 330, 120, 8, 0, [NSColorSpace sRGBColorSpace].CGColorSpace, kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);
+
+    CGContextSetRGBFillColor(context, 1, 1, 1, 1);
+    CGContextFillRect(context, CGRectMake(0, 0, CGBitmapContextGetWidth(context), CGBitmapContextGetHeight(context)));
+
+    CGContextSetRGBStrokeColor(context, 0, 0, 0, 1);
+    CGContextAddRects(context, (CGRect[]) {
+        CGRectMake(10, 10, 100, 100),
+        CGRectMake(115, 10, 100, 100),
+        CGRectMake(220, 10, 100, 100),
+        CGRectMake(5, 5, 320, 110)
+    }, 4);
+    CGContextStrokePath(context);
+
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
+    CGContextRelease(context);
+
+    IABuffer *buffer;
+
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithImage:(__bridge CGImageRef)image error:&error]);
+    XCTAssertNoError(buffer = [buffer extractBorderMaskWithROI:NSMakeRect(8, 8, buffer.width - 16, buffer.height - 16) error:&error]);
+
+    uint8_t *row = [buffer getRow:60];
+
+    XCTAssertEqual(row[0],   0x00);
+    XCTAssertEqual(row[1],   0x00);
+    XCTAssertEqual(row[2],   0x00);
+    XCTAssertEqual(row[3],   0x00);
+    XCTAssertEqual(row[4],   0x00);  // key crop test
+    XCTAssertEqual(row[5],   0x00);
+    XCTAssertEqual(row[6],   0x00);
+    XCTAssertEqual(row[7],   0x00);
+    XCTAssertEqual(row[60],  0xFF);
+    XCTAssertEqual(row[112], 0x00);
+    XCTAssertEqual(row[165], 0xFF);
+    XCTAssertEqual(row[217], 0x00);
+    XCTAssertEqual(row[270], 0xFF);
+    XCTAssertEqual(row[322], 0x00);
+    XCTAssertEqual(row[323], 0x00);
+    XCTAssertEqual(row[324], 0x00);
+    XCTAssertEqual(row[325], 0x00);
+    XCTAssertEqual(row[326], 0x00);  // key crop test
+    XCTAssertEqual(row[327], 0x00);
+    XCTAssertEqual(row[328], 0x00);
+    XCTAssertEqual(row[329], 0x00);
+
+    WRITE_TO_FILE(buffer, border-mask-crop);
 }
 
 - (void)testExtractBorderMaskFuzzy {
@@ -163,7 +213,7 @@
     IABuffer *buffer;
 
     XCTAssertNoError(buffer = [[[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]
-                               extractBorderMaskAndReturnError:&error]);
+                               extractBorderMaskWithROI:NSMakeRect(0, 0, buffer.width, buffer.height) error:&error]);
 
     WRITE_TO_FILE(buffer, alpha);
 }
@@ -350,7 +400,7 @@
         XCTAssertNotNil(buffer);
 
         [self startMeasuring];
-        XCTAssertNotNil([buffer extractBorderMaskAndReturnError:NULL]);
+        XCTAssertNotNil([buffer extractBorderMaskWithROI:NSMakeRect(0, 0, buffer.width, buffer.height) error:NULL]);
         [self stopMeasuring];
     }];
 }
@@ -367,7 +417,7 @@
 
         CGImageRelease(image);
 
-        IABuffer *buffer = [imageBuffer extractBorderMaskAndReturnError:&error];
+        IABuffer *buffer = [imageBuffer extractBorderMaskWithROI:NSMakeRect(0, 0, imageBuffer.width, imageBuffer.height) error:&error];
         buffer = [[buffer erodeWithKernelSize:NSMakeSize(3, 3) error:&error] dilateWithKernelSize:NSMakeSize(3, 3) error:&error];
         buffer = [[buffer dilateWithKernelSize:NSMakeSize(3, 3) error:&error] subtractBuffer:buffer error:&error];
         XCTAssertNotNil(buffer, @"error - %@", error);

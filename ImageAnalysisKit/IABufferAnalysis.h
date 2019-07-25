@@ -17,6 +17,14 @@ CF_EXTERN_C_BEGIN
 #endif
 
 /*!
+ * @abstract Make pixels outside of the region of interest fully transparent.
+ * @param buffer The vImage buffer to work on.  This should be a floating-point four-channel buffer.
+ * @param ROI The region of interest.
+ * @param error If not @c NULL and an error occurs, will be filled with the error information.
+ */
+bool IAAddAlphaBorderToBuffer(const vImage_Buffer *buffer, CGRect ROI, CFErrorRef *error);
+
+/*!
  * @abstract Attempt to create an alpha channel through flood fill.
  * @param buffer The vImage buffer to work on.  This should be a floating-point four-channel buffer in the L*a*b* color space, with the last channel as the alpha and the range of a* and b* being {-127 ... +127}.
  * @param x The x coordinate of the start of the flood fill.

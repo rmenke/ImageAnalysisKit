@@ -38,7 +38,9 @@ FOUNDATION_EXPORT NSString * const ImageAnalysisKitErrorDomain;
 - (nullable IABuffer *)subtractBuffer:(IABuffer *)buffer error:(NSError **)error;
 
 - (nullable IABuffer *)extractChannel:(NSUInteger)channel error:(NSError **)error;
-- (nullable IABuffer *)extractBorderMaskAndReturnError:(NSError **)error;
+
+- (nullable IABuffer *)extractBorderMaskWithROI:(NSRect)ROI error:(NSError **)error;
+- (nullable IABuffer *)extractBorderMaskWithFuzziness:(float)fuzziness ROI:(NSRect)ROI error:(NSError **)error;
 
 - (nullable NSArray<IABuffer *> *)extractAllPlanesAndReturnError:(NSError **)error;
 
