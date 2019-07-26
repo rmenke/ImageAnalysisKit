@@ -218,6 +218,47 @@
     WRITE_TO_FILE(buffer, alpha);
 }
 
+- (void)testFlattenImage {
+    IABuffer *buffer;
+
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithContentsOfURL:_imageURLs[0] error:&error]);
+    XCTAssertNoError(buffer = [buffer flattenAgainstColor:NSColor.purpleColor error:&error]);
+
+    WRITE_TO_FILE(buffer, flatten);
+}
+
+- (void)testFlattenFuzzy {
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+    CFArrayRef colors = CFArrayCreate(kCFAllocatorDefault, (const void*[]) { CGColorGetConstantColor(kCGColorBlack), CGColorGetConstantColor(kCGColorClear) }, 2, &kCFTypeArrayCallBacks);
+    CGGradientRef gradient = CGGradientCreateWithColors(colorSpace, colors, NULL);
+    CFRelease(colors);
+
+    const NSUInteger size = 256;
+
+    CGContextRef context = CGBitmapContextCreate(NULL, size, size, 8, 0, colorSpace, kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);
+    CGContextSetFillColorWithColor(context, CGColorGetConstantColor(kCGColorClear));
+    CGContextFillRect(context, CGRectMake(0, 0, size, size));
+    CGContextDrawRadialGradient(context, gradient, CGPointMake(size/2,size/2), 0, CGPointMake(size/2,size/2), size/2, kCGGradientDrawsAfterEndLocation);
+    CGGradientRelease(gradient);
+
+    id image = CFBridgingRelease(CGBitmapContextCreateImage(context));
+    CGContextRelease(context);
+
+    IABuffer *buffer;
+
+    XCTAssertNoError(buffer = [[IABuffer alloc] initWithImage:(__bridge CGImageRef)(image) error:&error]);
+    XCTAssertNoError(buffer = [buffer flattenAgainstColor:NSColor.cyanColor error:&error]);
+
+    for (NSUInteger y = 0; y < buffer.height; ++y) {
+        const vector_uchar4 *const row = [buffer getRow:y];
+        for (NSUInteger x = 0; x < buffer.width; ++x) {
+            XCTAssertEqual((unsigned)(row[x].w), 0xFF);
+        }
+    }
+
+    WRITE_TO_FILE(buffer, flatten-fuzzy);
+}
+
 - (void)testDilate {
     CGContextRef context = CGBitmapContextCreate(NULL, 16, 16, 8, 0, [NSColorSpace sRGBColorSpace].CGColorSpace,
                                                  kCGBitmapByteOrder32Host|kCGImageAlphaPremultipliedFirst);

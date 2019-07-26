@@ -252,6 +252,46 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     free(buffer.data);
 }
 
+- (IABuffer *)flattenAgainstColor:(NSColor *)color error:(NSError **)error {
+    NSColorSpace *colorSpace = [[NSColorSpace alloc] initWithCGColorSpace:format.colorSpace];
+
+    IABuffer *result = [[IABuffer alloc] initWithHeight:buffer.height
+                                                  width:buffer.width
+                                       bitsPerComponent:format.bitsPerComponent
+                                           bitsPerPixel:format.bitsPerPixel
+                                             colorSpace:colorSpace
+                                                  error:error];
+
+    result->format.bitmapInfo &= ~kCGBitmapAlphaInfoMask;
+    result->format.bitmapInfo |= kCGImageAlphaNoneSkipLast;
+
+    color = [color colorUsingColorSpace:colorSpace];
+    NSAssert(color.numberOfComponents <= 4, @"Too many color components in target color space.");
+
+    CGFloat backgroundColor[4];
+    [color getComponents:backgroundColor];
+
+    vImage_Error code;
+
+    vImageConverterRef converter = vImageConverter_CreateWithCGImageFormat(&format, &result->format, backgroundColor, kvImageNoFlags, &code);
+
+    if (!converter) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+        return nil;
+    }
+
+    code = vImageConvert_AnyToAny(converter, &buffer, &result->buffer, NULL, kvImageNoFlags);
+
+    if (code != kvImageNoError) {
+        if (error) *error = [NSError errorWithDomain:ImageAnalysisKitErrorDomain code:code userInfo:nil];
+        return nil;
+    }
+
+    CFRelease(converter);
+
+    return result;
+}
+
 - (IABuffer *)dilateWithKernelSize:(NSSize)kernelSize error:(NSError **)error {
     IABuffer *result = [[IABuffer alloc] initWithHeight:buffer.height width:buffer.width
                                        bitsPerComponent:format.bitsPerComponent bitsPerPixel:format.bitsPerPixel

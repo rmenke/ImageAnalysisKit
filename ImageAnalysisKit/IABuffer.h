@@ -32,6 +32,8 @@ FOUNDATION_EXPORT NSString * const ImageAnalysisKitErrorDomain;
 
 - (nullable instancetype)initWithPlanes:(NSArray<IABuffer *> *)planes error:(NSError **)error;
 
+- (nullable IABuffer *)flattenAgainstColor:(NSColor *)color error:(NSError **)error;
+
 - (nullable IABuffer *)dilateWithKernelSize:(NSSize)kernelSize error:(NSError **)error;
 - (nullable IABuffer *)erodeWithKernelSize:(NSSize)kernelSize error:(NSError **)error;
 
