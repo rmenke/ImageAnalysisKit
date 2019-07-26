@@ -537,50 +537,22 @@ NSString * const ImageAnalysisKitErrorDomain = @"ImageAnalysisKitErrorDomain";
     return @[bufferA, bufferR, bufferG, bufferB];
 }
 
-- (NSArray<NSValue *> *)extractSegmentsWithParameters:(NSDictionary<NSString *,id> *)parameters error:(NSError **)error {
-    CFErrorRef cfError;
-    NSArray<NSArray<NSNumber *> *> *segments = CFBridgingRelease(IACreateSegmentArray(&buffer, (__bridge CFDictionaryRef)(parameters), error ? &cfError : NULL));
-    if (!segments) {
-        if (error) *error = CFBridgingRelease(cfError);
-        return nil;
-    }
+- (NSArray<NSArray<NSNumber *> *> *)extractSegmentsWithParameters:(NSDictionary<NSString *,id> *)parameters error:(NSError **)error {
+    CFErrorRef cfError, *cfErrPtr = error ? &cfError : NULL;
 
-    NSMutableArray<NSValue *> *result = [NSMutableArray arrayWithCapacity:segments.count];
+    NSArray<NSArray<NSNumber *> *> *segments = CFBridgingRelease(IACreateSegmentArray(&buffer, (__bridge CFDictionaryRef)(parameters), cfErrPtr));
+    if (!segments && cfErrPtr) *error = CFBridgingRelease(*cfErrPtr);
 
-    for (NSArray<NSNumber *> *segment in segments) {
-        CGPoint s[2];
-
-        s[0].x = segment[0].doubleValue;
-        s[0].y = segment[1].doubleValue;
-        s[1].x = segment[2].doubleValue;
-        s[1].y = segment[3].doubleValue;
-
-        [result addObject:[NSValue valueWithBytes:s objCType:@encode(CGPoint[2])]];
-    }
-
-    return result;
+    return segments;
 }
 
-- (NSArray<NSValue *> *)extractRegionsWithParameters:(NSDictionary<NSString *,id> *)parameters error:(NSError **)error {
-    CFErrorRef cfError;
-    NSArray<NSArray<NSNumber *> *> *regions = CFBridgingRelease(IACreateRegionArray(&buffer, (__bridge CFDictionaryRef)(parameters), error ? &cfError : NULL));
-    if (!regions) {
-        if (error) *error = CFBridgingRelease(cfError);
-        return nil;
-    }
+- (NSArray<NSArray<NSNumber *> *> *)extractRegionsWithParameters:(NSDictionary<NSString *,id> *)parameters error:(NSError **)error {
+    CFErrorRef cfError, *cfErrPtr = error ? &cfError : NULL;
 
-    NSMutableArray<NSValue *> *result = [NSMutableArray arrayWithCapacity:regions.count];
+    NSArray<NSArray<NSNumber *> *> *regions = CFBridgingRelease(IACreateRegionArray(&buffer, (__bridge CFDictionaryRef)(parameters), cfErrPtr));
+    if (!regions && cfErrPtr) *error = CFBridgingRelease(*cfErrPtr);
 
-    for (NSArray<NSNumber *> *region in regions) {
-        double x = region[0].doubleValue;
-        double y = region[1].doubleValue;
-        double w = region[2].doubleValue;
-        double h = region[3].doubleValue;
-
-        [result addObject:[NSValue valueWithRect:NSMakeRect(x, y, w, h)]];
-    }
-
-    return result;
+    return regions;
 }
 
 - (CGImageRef)newCGImageAndReturnError:(NSError **)error {

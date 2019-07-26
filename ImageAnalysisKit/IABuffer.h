@@ -47,7 +47,7 @@ FOUNDATION_EXPORT NSString * const ImageAnalysisKitErrorDomain;
 - (nullable NSArray<IABuffer *> *)extractAllPlanesAndReturnError:(NSError **)error;
 
 - (nullable NSArray<NSValue *> *)extractSegmentsWithParameters:(NSDictionary<NSString *, id> *)parameters error:(NSError **)error;
-- (nullable NSArray<NSValue *> *)extractRegionsWithParameters:(NSDictionary<NSString *, id> *)parameters error:(NSError **)error;
+- (nullable NSArray<NSArray<NSNumber *> *> *)extractRegionsWithParameters:(NSDictionary<NSString *, id> *)parameters error:(NSError **)error;
 
 - (nullable CGImageRef)newCGImageAndReturnError:(NSError **)error;
 - (BOOL)writePNGFileToURL:(NSURL *)url error:(NSError **)error;
