@@ -465,7 +465,7 @@
 
         NSArray<NSValue *> *segments = [buffer extractSegmentsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
         XCTAssertNotNil(segments, @"error - %@", error);
-        NSArray<NSValue *> *regions = [buffer extractRegionsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
+        NSArray<NSArray<NSNumber *> *> *regions = [buffer extractRegionsWithParameters:@{@"sensitivity":@12, @"maxGap":@4, @"minSegmentLength":@15, @"channelWidth":@3} error:&error];
         XCTAssertNotNil(regions, @"error - %@", error);
 
         switch (idx) {
@@ -513,8 +513,8 @@
 
         CGMutablePathRef path = CGPathCreateMutable();
 
-        for (NSValue *value in regions) {
-            CGRect region = NSRectToCGRect(value.rectValue);
+        for (NSArray<NSNumber *> *r in regions) {
+            CGRect region = CGRectMake(r[0].doubleValue, r[1].doubleValue, r[2].doubleValue, r[3].doubleValue);
             CGPathAddRect(path, NULL, region);
         }
 
@@ -532,8 +532,8 @@
 
         NSUInteger index = 0;
 
-        for (NSValue *value in regions) {
-            CGRect region = NSRectToCGRect(value.rectValue);
+        for (NSArray<NSNumber *> *r in regions) {
+            CGRect region = CGRectMake(r[0].doubleValue, r[1].doubleValue, r[2].doubleValue, r[3].doubleValue);
 
             NSAttributedString *aString = [[NSAttributedString alloc] initWithString:@(++index).stringValue attributes:@{(NSString *)kCTFontAttributeName:font, (NSString *)kCTForegroundColorAttributeName:(id)([NSColor greenColor].CGColor)}];
             CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)aString);
@@ -546,10 +546,11 @@
 
         CGContextFillPath(context);
 
-        for (NSValue *value in segments) {
-            CGPoint points[2];
-
-            [value getValue:points];
+        for (NSArray<NSNumber *> *s in segments) {
+            CGPoint points[] = {
+                { .x = s[0].doubleValue, .y = s[1].doubleValue },
+                { .x = s[2].doubleValue, .y = s[3].doubleValue }
+            };
 
             CGContextAddLines(context, points, 2);
             CGContextAddEllipseInRect(context, CGRectMake(points[0].x - 2, points[0].y - 2, 4, 4));
